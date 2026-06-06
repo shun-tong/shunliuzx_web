@@ -1,109 +1,88 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的第一个网站</title>
-
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, "Microsoft YaHei", sans-serif;
-            background: #f5f5f5;
-            color: #222;
-        }
-
-        header {
-            background: #222;
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        main {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 20px;
-        }
-
-        .card {
-            background: white;
-            padding: 25px;
-            margin-bottom: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        h1 {
-            margin: 0;
-        }
-
-        h2 {
-            color: #333;
-        }
-
-        p {
-            line-height: 1.8;
-        }
-
-        button {
-            background: #ff6600;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #e65c00;
-        }
-
-        footer {
-            text-align: center;
-            color: #666;
-            padding: 30px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>shunliuzx.com</title>
+  <link rel="stylesheet" href="assets/site.css">
 </head>
+<body data-page="home" data-theme="wolf">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="mark">SL</div>
+        <div>
+          <h1>shunliuzx.com</h1>
+          <p>Rhodes private terminal</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <a class="active" href="/"><b>控制台</b><span>HOME</span></a>
+        <a href="/quotes/"><b>名句档案</b><span>Q-01</span></a>
+        <a href="/schedule/"><b>日程备忘</b><span>S-02</span></a>
+        <a href="/blog/"><b>记录库</b><span>B-03</span></a>
+        <a href="/status/"><b>状态面板</b><span>P-04</span></a>
+      </nav>
+      <div class="themebox">
+        <div class="seg" role="group" aria-label="theme">
+          <button data-theme-set="wolf">冷白</button>
+          <button data-theme-set="amber">琥珀</button>
+        </div>
+      </div>
+    </aside>
 
-<body>
-    <header>
-        <h1>我的第一个网站</h1>
-        <p>使用 GitHub + Cloudflare Pages 部署</p>
-    </header>
+    <main class="content">
+      <section class="topline">
+        <div>
+          <div class="kicker">Operator File / Lappland Trace</div>
+          <h2>个人网络终端</h2>
+        </div>
+        <div class="statusbar">
+          <span class="chip">DOMAIN shunliuzx.com</span>
+          <span class="chip">CF PAGES ONLINE</span>
+          <span class="chip">MAIN BRANCH</span>
+        </div>
+      </section>
 
-    <main>
-        <div class="card">
-            <h2>网站测试成功</h2>
-            <p>
-                如果你能看到这个页面，说明 HTML 文件已经成功部署到 Cloudflare Pages。
-            </p>
+      <section class="grid">
+        <div class="panel span-8 lappland">
+          <h3>白狼观察窗</h3>
+          <p>安静、锋利、带一点失控边缘的个人空间。这里收纳想法、日程、记录和状态。</p>
+          <p>黑白刀痕与档案编号只是视觉语言，不使用官方素材。</p>
+          <div class="slash"></div>
+          <div class="wolf" aria-hidden="true"></div>
         </div>
 
-        <div class="card">
-            <h2>关于这个网站</h2>
-            <p>
-                这是一个简单的测试页面。之后你可以继续添加图片、导航栏、个人介绍、项目展示等内容。
-            </p>
+        <div class="panel span-4">
+          <h3>入口</h3>
+          <div class="quote-list">
+            <a class="item link-card" href="/quotes/"><b>名句档案</b><span class="meta">保存你觉得有道理的话</span></a>
+            <a class="item link-card" href="/schedule/"><b>日程备忘</b><span class="meta">写下时间和要做的事</span></a>
+            <a class="item link-card" href="/status/"><b>状态面板</b><span class="meta">先手动记录，之后可接手机自动化</span></a>
+          </div>
         </div>
 
-        <div class="card">
-            <h2>测试按钮</h2>
-            <p>点击下面的按钮，可以测试 JavaScript 是否正常运行。</p>
-            <button onclick="showMessage()">点击测试</button>
+        <div class="panel span-4">
+          <h3>今日信号</h3>
+          <div class="big-number" id="homeTasks">0</div>
+          <p>待处理日程</p>
         </div>
+
+        <div class="panel span-4">
+          <h3>收录语句</h3>
+          <div class="big-number" id="homeQuotes">0</div>
+          <p>保存在本浏览器</p>
+        </div>
+
+        <div class="panel span-4">
+          <h3>最后状态</h3>
+          <p id="homeStatus">未记录</p>
+        </div>
+      </section>
+
+      <footer>© 2026 shunliuzx.com / personal terminal</footer>
     </main>
-
-    <footer>
-        <p>© 2026 My Website</p>
-    </footer>
-
-    <script>
-        function showMessage() {
-            alert("JavaScript 运行成功！");
-        }
-    </script>
+  </div>
+  <script src="assets/site.js"></script>
 </body>
 </html>

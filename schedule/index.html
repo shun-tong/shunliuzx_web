@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日程备忘 / shunliuzx.com</title>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body data-page="schedule" data-theme="wolf">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="mark">SL</div><div><h1>日程备忘</h1><p>Task terminal</p></div></div>
+      <nav class="nav">
+        <a href="/"><b>控制台</b><span>HOME</span></a>
+        <a href="/quotes/"><b>名句档案</b><span>Q-01</span></a>
+        <a class="active" href="/schedule/"><b>日程备忘</b><span>S-02</span></a>
+        <a href="/blog/"><b>记录库</b><span>B-03</span></a>
+        <a href="/status/"><b>状态面板</b><span>P-04</span></a>
+      </nav>
+      <div class="themebox"><div class="seg"><button data-theme-set="wolf">冷白</button><button data-theme-set="amber">琥珀</button></div></div>
+    </aside>
+    <main class="content">
+      <section class="topline"><div><div class="kicker">S-02 / Schedule</div><h2>日程备忘</h2></div><div class="statusbar"><span class="chip">TIME LOCK</span><span class="chip">BROWSER STORAGE</span></div></section>
+      <section class="grid">
+        <div class="panel span-4">
+          <h3>新增事项</h3>
+          <form class="form" id="taskForm">
+            <input id="taskTitle" required placeholder="要做的事">
+            <input id="taskTime" type="datetime-local">
+            <select id="taskLevel"><option>普通</option><option>重要</option><option>紧急</option></select>
+            <textarea id="taskNote" placeholder="备注"></textarea>
+            <button class="primary" type="submit">加入</button>
+          </form>
+        </div>
+        <div class="panel span-8"><h3>任务队列</h3><div class="task-list" id="taskList"></div></div>
+      </section>
+      <footer>© 2026 shunliuzx.com</footer>
+    </main>
+  </div>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

@@ -1,2 +1,11 @@
 # shunliuzx_web
-This is a personal website
+
+Personal website for shunliuzx.com.
+
+Routes:
+
+- `/`
+- `/quotes/`
+- `/schedule/`
+- `/blog/`
+- `/status/`
