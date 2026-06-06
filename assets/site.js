@@ -30,8 +30,8 @@
   async function initSession(){
     try{
       var data=await api("/api/session");
-      role=data.role||"visitor";
       cloudReady=!!data.cloudReady;
+      role=cloudReady?(data.role||"visitor"):"local";
     }catch(e){
       role="local";
       cloudReady=false;
