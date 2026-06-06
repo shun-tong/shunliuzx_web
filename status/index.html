@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>状态面板 / shunliuzx.com</title>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body data-page="status" data-theme="wolf">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="mark">SL</div><div><h1>状态面板</h1><p>Phone signal</p></div></div>
+      <nav class="nav">
+        <a href="/"><b>控制台</b><span>HOME</span></a>
+        <a href="/quotes/"><b>名句档案</b><span>Q-01</span></a>
+        <a href="/schedule/"><b>日程备忘</b><span>S-02</span></a>
+        <a href="/blog/"><b>记录库</b><span>B-03</span></a>
+        <a class="active" href="/status/"><b>状态面板</b><span>P-04</span></a>
+      </nav>
+      <div class="themebox"><div class="seg"><button data-theme-set="wolf">冷白</button><button data-theme-set="amber">琥珀</button></div></div>
+    </aside>
+    <main class="content">
+      <section class="topline"><div><div class="kicker">P-04 / Manual Signal</div><h2>状态面板</h2></div><div class="statusbar"><span class="chip">MANUAL</span><span class="chip">READY FOR AUTOMATION</span></div></section>
+      <section class="grid">
+        <div class="panel span-4">
+          <h3>更新状态</h3>
+          <form class="form" id="statusForm">
+            <input id="phoneNow" required placeholder="现在在做什么">
+            <select id="phoneMode"><option>在线</option><option>专注</option><option>休息</option><option>离线</option></select>
+            <label>电量</label>
+            <input id="phoneBattery" type="range" min="0" max="100" value="50">
+            <label>专注</label>
+            <input id="phoneFocus" type="range" min="0" max="100" value="50">
+            <textarea id="phoneNote" placeholder="补充"></textarea>
+            <button class="primary" type="submit">同步</button>
+          </form>
+        </div>
+        <div class="panel span-8"><h3>当前信号</h3><div id="statusBox"></div></div>
+      </section>
+      <footer>© 2026 shunliuzx.com</footer>
+    </main>
+  </div>
+  <script src="../assets/site.js"></script>
+</body>
+</html>
