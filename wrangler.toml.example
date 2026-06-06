@@ -1,0 +1,8 @@
+name = "shunliuzx-web"
+compatibility_date = "2026-06-06"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "SITE_DB"
+database_name = "shunliuzx_site"
+database_id = "replace-with-your-d1-database-id"
