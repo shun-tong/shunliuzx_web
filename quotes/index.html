@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>名句档案 / shunliuzx.com</title>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body data-page="quotes" data-theme="wolf">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="mark">SL</div><div><h1>名句档案</h1><p>Sentence archive</p></div></div>
+      <nav class="nav">
+        <a href="/"><b>控制台</b><span>HOME</span></a>
+        <a class="active" href="/quotes/"><b>名句档案</b><span>Q-01</span></a>
+        <a href="/schedule/"><b>日程备忘</b><span>S-02</span></a>
+        <a href="/blog/"><b>记录库</b><span>B-03</span></a>
+        <a href="/status/"><b>状态面板</b><span>P-04</span></a>
+      </nav>
+      <div class="themebox"><div class="seg"><button data-theme-set="wolf">冷白</button><button data-theme-set="amber">琥珀</button></div></div>
+    </aside>
+    <main class="content">
+      <section class="topline"><div><div class="kicker">Q-01 / Lupo Fragment</div><h2>名句档案</h2></div><div class="statusbar"><span class="chip">CLOUD DATA</span><span class="chip">VISITOR READ</span></div></section>
+      <section class="grid">
+        <div class="panel span-4">
+          <h3>新增</h3>
+          <form class="form" id="quoteForm">
+            <textarea id="quoteText" required placeholder="句子"></textarea>
+            <input id="quoteSource" placeholder="来源">
+            <input id="quoteTag" placeholder="标签">
+            <button class="primary" type="submit">收录</button>
+          </form>
+        </div>
+        <div class="panel span-8"><h3>档案列表</h3><div class="quote-list" id="quoteList"></div></div>
+      </section>
+      <footer>© 2026 shunliuzx.com</footer>
+    </main>
+  </div>
+  <script src="../assets/site.js"></script>
+</body>
+</html>
