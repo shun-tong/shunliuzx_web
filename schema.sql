@@ -25,3 +25,21 @@ create table if not exists status_log (
   note text default '',
   updated_at text default current_timestamp
 );
+
+create table if not exists review_subjects (
+  id integer primary key autoincrement,
+  name text not null,
+  total_hours real not null,
+  spent_hours real default 0,
+  exam_date text not null,
+  note text default '',
+  created_at text default current_timestamp
+);
+
+create table if not exists review_days (
+  id integer primary key autoincrement,
+  day text not null unique,
+  available_hours real not null,
+  note text default '',
+  created_at text default current_timestamp
+);
