@@ -8,7 +8,9 @@ Routes:
 - `/quotes/`
 - `/schedule/`
 - `/blog/`
-- `/status/`
+- `/review/` admin only
+
+`/status/` is deprecated and hidden from navigation.
 
 Cloud data setup:
 
@@ -19,3 +21,6 @@ Cloud data setup:
    - `ADMIN_PASSWORD`
    - `SESSION_SECRET`
 5. Redeploy the Pages project.
+
+If the database already exists, run the `review_subjects` and `review_days`
+statements from `schema.sql` to enable the review planner.
