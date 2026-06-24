@@ -70,3 +70,10 @@ create table if not exists timetable_courses (
   source text default 'pdf',
   created_at text default current_timestamp
 );
+
+create table if not exists auth_attempts (
+  client_key text primary key,
+  failed_count integer default 0,
+  locked_until integer default 0,
+  updated_at integer not null
+);
