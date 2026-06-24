@@ -3,28 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>课表导入 / shunliuzx.com</title>
+  <title>课表 / shunliuzx.com</title>
   <link rel="stylesheet" href="../assets/site.css">
   <style>
-    .locked{max-width:620px}.import-tools{display:grid;gap:10px}.course-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}.day-col{border:1px solid var(--line);background:var(--panel-2);min-height:140px}.day-col h4{margin:0;padding:10px;border-bottom:1px solid var(--line);font-size:13px}.course-card{margin:8px;padding:10px;border:1px solid var(--line);background:var(--bg)}.course-card b{font-size:13px}.course-card .meta{display:block;margin-top:4px}.preview-table{display:grid;gap:8px}.pill-row{display:flex;gap:8px;flex-wrap:wrap}.pill{border:1px solid var(--line);padding:6px 8px;color:var(--muted);font-size:12px}@media(max-width:980px){.course-grid{grid-template-columns:1fr}.day-col{min-height:auto}}
+    .locked{max-width:620px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.toolbar input{max-width:160px}.import-tools{display:grid;gap:10px}.week-meta{color:var(--muted);font-size:12px}.schedule-board{display:grid;grid-template-columns:72px repeat(7,minmax(96px,1fr));overflow:auto;border:1px solid var(--line);background:var(--panel-2)}.corner,.day-head,.time-cell,.day-lane{border-right:1px solid var(--line);border-bottom:1px solid var(--line)}.corner,.day-head{position:sticky;top:0;z-index:3;background:var(--panel);min-height:58px}.corner{left:0;z-index:4}.day-head{padding:9px;text-align:center}.day-head b{display:block}.time-cell{grid-column:1;min-height:70px;padding:7px;background:var(--panel);position:sticky;left:0;z-index:2}.time-cell b{display:block;font-size:17px}.time-cell span{display:block;color:var(--muted);font-size:11px;line-height:1.3}.day-lane{position:relative;min-height:70px;background:rgba(255,255,255,.015)}.course-tile{position:absolute;left:5px;right:5px;top:5px;bottom:5px;border:2px solid var(--accent);background:rgba(8,10,13,.72);color:var(--text);padding:7px;overflow:hidden;text-align:left}.course-tile b{font-size:13px;line-height:1.2}.course-tile span{display:block;font-size:12px;line-height:1.25}.course-tile .teacher{color:var(--muted)}.detail-dialog{max-width:620px;border:1px solid var(--line);background:var(--panel);color:var(--text);padding:18px}.detail-dialog::backdrop{background:rgba(0,0,0,.58)}.detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.detail-grid .item{box-shadow:none}.empty-note{padding:18px;color:var(--muted)}@media(max-width:980px){.schedule-board{grid-template-columns:64px repeat(7,112px)}.detail-grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body data-page="timetable" data-theme="wolf">
   <div class="shell">
     <aside class="sidebar">
-      <div class="brand"><div class="mark">SL</div><div><h1>课表导入</h1><p>PDF timetable import</p></div></div>
+      <div class="brand"><div class="mark">SL</div><div><h1>课表</h1><p>Weekly timetable</p></div></div>
       <nav class="nav">
         <a href="/"><b>控制台</b><span>HOME</span></a>
         <a href="/quotes/"><b>名句档案</b><span>Q-01</span></a>
         <a href="/schedule/"><b>日程备忘</b><span>S-02</span></a>
         <a href="/blog/"><b>记录库</b><span>B-03</span></a>
         <a href="/review/"><b>复习计划</b><span>R-04</span></a>
-        <a class="active" href="/timetable/"><b>课表导入</b><span>T-05</span></a>
+        <a class="active" href="/timetable/"><b>课表</b><span>T-05</span></a>
       </nav>
       <div class="themebox"><div class="seg"><button data-theme-set="wolf">冷白</button><button data-theme-set="amber">琥珀</button></div></div>
     </aside>
     <main class="content">
-      <section class="topline"><div><div class="kicker">T-05 / Admin Only</div><h2>课表导入</h2></div><div class="statusbar"><span class="chip">PDF IMPORT</span><span class="chip">PRIVATE</span></div></section>
+      <section class="topline"><div><div class="kicker">T-05 / Admin Only</div><h2>课表</h2></div><div class="statusbar"><span class="chip">PDF IMPORT</span><span class="chip">PRIVATE</span></div></section>
       <section class="grid" id="timetableLocked">
         <div class="panel span-8 locked">
           <h3>需要管理员权限</h3>
@@ -36,139 +36,61 @@
           <h3>导入 PDF</h3>
           <div class="import-tools">
             <input id="pdfFile" type="file" accept="application/pdf">
-            <button class="primary" id="parsePdfBtn" type="button">解析 PDF</button>
-            <textarea id="rawText" placeholder="也可以把 PDF 或教务网页里复制出的课表文字粘贴到这里"></textarea>
-            <button id="parseTextBtn" type="button">解析文本</button>
+            <button class="primary" id="parsePdfBtn" type="button">解析并预览 PDF</button>
             <button id="savePreviewBtn" type="button">保存预览到云端</button>
             <button class="danger" id="clearTimetableBtn" type="button">清空云端课表</button>
             <div class="notice" id="importNotice">等待导入。</div>
           </div>
         </div>
         <div class="panel span-8">
-          <h3>解析预览</h3>
-          <div class="preview-table" id="previewList"></div>
+          <h3>周视图</h3>
+          <div class="toolbar">
+            <button id="prevWeekBtn" type="button">上一周</button>
+            <button id="nextWeekBtn" type="button">下一周</button>
+            <label class="week-meta">第 <input id="weekNumber" type="number" min="1" max="30" value="1"> 周</label>
+            <label class="week-meta">第一周周一 <input id="termStart" type="date"></label>
+          </div>
+          <p class="week-meta" id="weekRange"></p>
         </div>
         <div class="panel span-12">
-          <h3>已保存课表</h3>
-          <div class="course-grid" id="courseGrid"></div>
+          <div class="schedule-board" id="scheduleBoard"></div>
+          <div class="empty-note" id="emptyNote">还没有已保存课程，先上传 PDF 并保存。</div>
         </div>
       </section>
       <footer>© 2026 shunliuzx.com</footer>
     </main>
   </div>
+  <dialog class="detail-dialog" id="detailDialog">
+    <h3 id="detailTitle"></h3>
+    <div class="detail-grid" id="detailBody"></div>
+    <form method="dialog"><button class="primary">关闭</button></form>
+  </dialog>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="../assets/site.js"></script>
-  <script type="module">
+  <script>
     const $=id=>document.getElementById(id);
     const weekdays=["星期一","星期二","星期三","星期四","星期五","星期六","星期日"];
-    let previewItems=[];
+    const times={1:["08:00","08:45"],2:["08:55","09:40"],3:["10:00","10:45"],4:["10:55","11:40"],5:["12:10","12:55"],6:["13:05","13:50"],7:["14:00","14:45"],8:["14:55","15:40"],9:["15:50","16:35"],10:["16:55","17:40"],11:["17:50","18:35"],12:["19:20","20:05"],13:["20:15","21:00"],14:["21:10","21:55"]};
+    let previewItems=[],savedItems=[],currentWeek=Number(localStorage.getItem("sl-week")||1);
     const esc=value=>String(value||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
     async function api(path,options){const res=await fetch(path,Object.assign({headers:{"content-type":"application/json"}},options||{}));const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||"请求失败");return data}
     function notice(text){$("importNotice").textContent=text}
     function field(raw,name){const match=raw.match(new RegExp(name+"[:：]([^/\\n]+)"));return match?match[1].trim():""}
-    function normalizeLines(text){return text.replace(/\r/g,"").split("\n").map(line=>line.trim()).filter(Boolean)}
-    function parseCourseBlock(name,detail,weekday){
-      const range=detail.match(/\((\d+)(?:-(\d+))?节\)([^/]+)/);
-      if(!range)return null;
-      const raw=name+"\n"+detail;
-      return {course_name:name.replace(/[◇◆]/g,"").trim(),weekday,weekday_label:weekdays[weekday-1],start_section:Number(range[1]),end_section:Number(range[2]||range[1]),weeks:(range[3]||"").trim(),campus:field(detail,"校区"),location:field(detail,"场地"),teacher:field(detail,"教师"),raw,source:"pdf"};
-    }
-    function parseText(text){
-      const lines=normalizeLines(text),items=[];let weekday=1;
-      for(let i=0;i<lines.length;i++){
-        const weekIndex=weekdays.indexOf(lines[i]);
-        if(weekIndex>=0){weekday=weekIndex+1;continue}
-        if(!/\(\d+(?:-\d+)?节\)/.test(lines[i]))continue;
-        let name=lines[i-1]||"";
-        if(!name||/^\d+$/.test(name)||/^\d{2}:\d{2}/.test(name))name="未命名课程";
-        const detail=[lines[i]];
-        for(let j=i+1;j<lines.length&&j<i+12;j++){
-          if(/\(\d+(?:-\d+)?节\)/.test(lines[j]))break;
-          detail.push(lines[j]);
-          if(/学分[:：]/.test(lines[j]))break;
-        }
-        const item=parseCourseBlock(name,detail.join("/"),weekday);
-        if(item)items.push(item);
-      }
-      return dedupe(items);
-    }
+    function dateISO(date){return date.toISOString().slice(0,10)}
+    function addDays(date,days){const copy=new Date(date);copy.setDate(copy.getDate()+days);return copy}
+    function defaultTermStart(){return localStorage.getItem("sl-term-start")||"2026-03-02"}
+    function weekDates(){const start=new Date($("termStart").value||defaultTermStart());const monday=addDays(start,(currentWeek-1)*7);return weekdays.map((day,index)=>({label:day,date:addDays(monday,index)}))}
+    function formatDate(date){return `${date.getMonth()+1}/${date.getDate()}`}
+    function weekMatches(weeks,week){const text=String(weeks||"");if(!text)return true;return text.split(/[，,]/).some(part=>{const odd=/单/.test(part),even=/双/.test(part);const range=part.match(/(\d+)(?:-(\d+))?/);if(!range)return false;const start=Number(range[1]),end=Number(range[2]||range[1]);if(week<start||week>end)return false;if(odd&&week%2===0)return false;if(even&&week%2!==0)return false;return true})}
     function lineKey(item){return [item.course_name,item.weekday,item.start_section,item.end_section,item.weeks,item.location,item.teacher].join("|")}
     function dedupe(items){const seen=new Set();return items.filter(item=>{const key=lineKey(item);if(seen.has(key))return false;seen.add(key);return true})}
-    function parseColumnLines(lines,weekday){
-      const items=[];
-      for(let i=0;i<lines.length;i++){
-        if(!/\(\d+(?:-\d+)?节\)/.test(lines[i]))continue;
-        let nameParts=[];
-        for(let j=i-1;j>=0&&j>=i-3;j--){
-          if(/\(\d+(?:-\d+)?节\)/.test(lines[j]))break;
-          if(/^(上午|中午|下午|晚上|时间段|节次)$/.test(lines[j]))break;
-          if(/^\d+$/.test(lines[j])||/^\d{2}:\d{2}$/.test(lines[j]))break;
-          nameParts.unshift(lines[j]);
-        }
-        const name=nameParts.join("").trim()||"未命名课程";
-        const detail=[lines[i]];
-        for(let j=i+1;j<lines.length&&j<i+12;j++){
-          if(/\(\d+(?:-\d+)?节\)/.test(lines[j]))break;
-          detail.push(lines[j]);
-          if(/学分[:：]/.test(lines[j]))break;
-        }
-        const item=parseCourseBlock(name,detail.join("/"),weekday);
-        if(item)items.push(item);
-      }
-      return items;
-    }
-    async function pdfToCourses(file){
-      const pdfjsLib=await import("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs");
-      pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs";
-      const data=new Uint8Array(await file.arrayBuffer());
-      const pdf=await pdfjsLib.getDocument({data}).promise;
-      const chunks=[],parsed=[];
-      for(let pageNo=1;pageNo<=pdf.numPages;pageNo++){
-        const page=await pdf.getPage(pageNo);
-        const viewport=page.getViewport({scale:1});
-        const content=await page.getTextContent();
-        const pageLines=new Map();
-        const columns=Array.from({length:7},()=>new Map());
-        const left=viewport.width*0.18;
-        const colWidth=(viewport.width-left)/7;
-        content.items.filter(item=>String(item.str||"").trim()).forEach(item=>{
-          const y=Math.round(item.transform[5]);
-          const x=Math.round(item.transform[4]);
-          const key=Array.from(pageLines.keys()).find(k=>Math.abs(k-y)<=3)||y;
-          if(!pageLines.has(key))pageLines.set(key,[]);
-          pageLines.get(key).push({x,text:item.str});
-          if(x<left)return;
-          const weekday=Math.max(1,Math.min(7,Math.floor((x-left)/colWidth)+1));
-          const col=columns[weekday-1];
-          const colKey=Array.from(col.keys()).find(k=>Math.abs(k-y)<=3)||y;
-          if(!col.has(colKey))col.set(colKey,[]);
-          col.get(colKey).push({x,text:item.str});
-        });
-        Array.from(pageLines.entries()).sort((a,b)=>b[0]-a[0]).forEach(([,parts])=>{chunks.push(parts.sort((a,b)=>a.x-b.x).map(part=>part.text).join(" ").replace(/\s+/g," ").trim())});
-        columns.forEach((column,index)=>{const lines=Array.from(column.entries()).sort((a,b)=>b[0]-a[0]).map(([,parts])=>parts.sort((a,b)=>a.x-b.x).map(part=>part.text).join("").replace(/\s+/g,"").trim()).filter(Boolean);parsed.push(...parseColumnLines(lines,index+1))});
-      }
-      return {text:chunks.join("\n"),items:dedupe(parsed)};
-    }
-    function drawPreview(){
-      $("previewList").innerHTML=previewItems.length?previewItems.map(item=>'<div class="item"><b>'+esc(item.course_name)+'</b><div class="pill-row"><span class="pill">'+esc(item.weekday_label)+'</span><span class="pill">第 '+esc(item.start_section)+'-'+esc(item.end_section)+' 节</span><span class="pill">'+esc(item.weeks)+'</span><span class="pill">'+esc(item.location||"未排地点")+'</span><span class="pill">'+esc(item.teacher||"未标注教师")+'</span></div></div>').join(""):'<div class="item"><b>暂无预览</b><span class="meta">上传 PDF 或粘贴课表文本后会显示在这里</span></div>';
-    }
-    async function drawSaved(){
-      const data=await api("/api/timetable").catch(()=>({items:[]}));
-      const items=data.items||[];
-      $("courseGrid").innerHTML=weekdays.map((day,index)=>{const courses=items.filter(item=>Number(item.weekday)===index+1);return '<div class="day-col"><h4>'+day+'</h4>'+(courses.length?courses.map(item=>'<div class="course-card"><b>'+esc(item.course_name)+'</b><span class="meta">第 '+esc(item.start_section)+'-'+esc(item.end_section)+' 节 / '+esc(item.weeks)+'</span><span class="meta">'+esc(item.location||"未排地点")+' / '+esc(item.teacher||"未标注教师")+'</span><button class="danger" data-del-course="'+esc(item.id)+'">删除</button></div>').join(""):'<div class="course-card"><span class="meta">暂无课程</span></div>')+'</div>'}).join("");
-      document.querySelectorAll("[data-del-course]").forEach(btn=>btn.onclick=async()=>{await api("/api/timetable?id="+encodeURIComponent(btn.dataset.delCourse),{method:"DELETE"});drawSaved()});
-    }
-    async function init(){
-      const session=await api("/api/session").catch(()=>({role:"visitor"}));
-      if(session.role!=="admin")return;
-      $("timetableLocked").style.display="none";
-      $("timetableApp").style.display="grid";
-      drawPreview();
-      await drawSaved();
-      $("parsePdfBtn").onclick=async()=>{const file=$("pdfFile").files[0];if(!file){notice("请先选择 PDF 文件。");return}notice("正在解析 PDF...");const result=await pdfToCourses(file);$("rawText").value=result.text;previewItems=result.items.length?result.items:parseText(result.text);drawPreview();notice("已解析 "+previewItems.length+" 条课程，请检查预览。")};
-      $("parseTextBtn").onclick=()=>{previewItems=parseText($("rawText").value);drawPreview();notice("已从文本解析 "+previewItems.length+" 条课程。")};
-      $("savePreviewBtn").onclick=async()=>{if(!previewItems.length){notice("没有可保存的预览。");return}await api("/api/timetable",{method:"POST",body:JSON.stringify({replace:true,items:previewItems})});notice("已保存 "+previewItems.length+" 条课程到云端。");drawSaved()};
-      $("clearTimetableBtn").onclick=async()=>{await api("/api/timetable",{method:"DELETE"});previewItems=[];drawPreview();drawSaved();notice("已清空云端课表。")};
-    }
+    function parseBlock(name,detail,weekday){const range=detail.match(/\((\d+)(?:-(\d+))?节\)([^/]+)/);if(!range)return null;return {course_name:name.replace(/[◇◆]/g,"").trim(),weekday,weekday_label:weekdays[weekday-1],start_section:Number(range[1]),end_section:Number(range[2]||range[1]),weeks:(range[3]||"").trim(),campus:field(detail,"校区"),location:field(detail,"场地"),teacher:field(detail,"教师"),raw:name+"\n"+detail,source:"pdf"}}
+    function parseColumnLines(lines,weekday){const items=[];for(let i=0;i<lines.length;i++){if(!/\(\d+(?:-\d+)?节\)/.test(lines[i]))continue;const nameParts=[];for(let j=i-1;j>=0&&j>=i-4;j--){if(/\(\d+(?:-\d+)?节\)/.test(lines[j]))break;if(/^(上午|中午|下午|晚上|时间段|节次)$/.test(lines[j]))break;if(/^\d+$/.test(lines[j])||/^\d{2}:\d{2}$/.test(lines[j]))break;nameParts.unshift(lines[j])}const detail=[lines[i]];for(let j=i+1;j<lines.length&&j<i+16;j++){if(/\(\d+(?:-\d+)?节\)/.test(lines[j]))break;detail.push(lines[j]);if(/学分[:：]/.test(lines[j]))break}const item=parseBlock(nameParts.join("").trim()||"未命名课程",detail.join("/"),weekday);if(item)items.push(item)}return items}
+    async function pdfToCourses(file){if(!window.pdfjsLib)throw new Error("PDF 解析库没有加载成功，请刷新后重试。");pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;const parsed=[];for(let pageNo=1;pageNo<=pdf.numPages;pageNo++){const page=await pdf.getPage(pageNo);const content=await page.getTextContent();const items=content.items.filter(item=>String(item.str||"").trim()).map(item=>({text:item.str.trim(),x:item.transform[4],y:item.transform[5]}));const headers=weekdays.map(day=>items.find(item=>item.text===day)?.x).filter(x=>typeof x==="number");const viewport=page.getViewport({scale:1});const fallbackLeft=viewport.width*0.18;const fallbackWidth=(viewport.width-fallbackLeft)/7;const columns=Array.from({length:7},()=>new Map());items.forEach(item=>{let weekday;if(headers.length>=7){let best=0,dist=Infinity;headers.slice(0,7).forEach((x,index)=>{const d=Math.abs(item.x-x);if(d<dist){dist=d;best=index}});weekday=best+1}else{if(item.x<fallbackLeft)return;weekday=Math.max(1,Math.min(7,Math.floor((item.x-fallbackLeft)/fallbackWidth)+1))}const col=columns[weekday-1];const key=Array.from(col.keys()).find(k=>Math.abs(k-item.y)<=3)||Math.round(item.y);if(!col.has(key))col.set(key,[]);col.get(key).push(item)});columns.forEach((column,index)=>{const lines=Array.from(column.entries()).sort((a,b)=>b[0]-a[0]).map(([,parts])=>parts.sort((a,b)=>a.x-b.x).map(part=>part.text).join("").replace(/\s+/g,"").trim()).filter(Boolean);parsed.push(...parseColumnLines(lines,index+1))})}return dedupe(parsed)}
+    function showDetail(item){$("detailTitle").textContent=item.course_name;const rows=[["星期",item.weekday_label],["节次",`第 ${item.start_section}-${item.end_section} 节`],["周次",item.weeks],["地点",item.location||"未排地点"],["教师",item.teacher||"未标注教师"],["校区",item.campus],["来源",item.source],["原始信息",item.raw]];$("detailBody").innerHTML=rows.map(([k,v])=>'<div class="item"><b>'+esc(k)+'</b><span class="meta">'+esc(v||"")+'</span></div>').join("");$("detailDialog").showModal()}
+    function drawSchedule(){localStorage.setItem("sl-week",String(currentWeek));$("weekNumber").value=currentWeek;const dates=weekDates();$("weekRange").textContent=`${dateISO(dates[0].date)} 至 ${dateISO(dates[6].date)}`;const visible=savedItems.filter(item=>weekMatches(item.weeks,currentWeek));$("emptyNote").style.display=savedItems.length?"none":"block";let html='<div class="corner"></div>';dates.forEach(day=>{html+='<div class="day-head"><b>'+day.label+'</b><span class="meta">'+formatDate(day.date)+'</span></div>'});for(let section=1;section<=14;section++){html+='<div class="time-cell"><b>'+section+'</b><span>'+times[section][0]+'</span><span>'+times[section][1]+'</span></div>';for(let weekday=1;weekday<=7;weekday++){html+='<div class="day-lane" data-weekday="'+weekday+'" data-section="'+section+'"></div>'}}$("scheduleBoard").innerHTML=html;visible.forEach(item=>{const lane=document.querySelector('[data-weekday="'+item.weekday+'"][data-section="'+item.start_section+'"]');if(!lane)return;const tile=document.createElement("button");tile.className="course-tile";tile.style.height=`calc(${Math.max(1,item.end_section-item.start_section+1)*100}% + ${Math.max(0,item.end_section-item.start_section)}px)`;tile.innerHTML='<b>'+esc(item.course_name)+'</b><span>@'+esc(item.location||"未排地点")+'</span><span class="teacher">'+esc(item.teacher||"未标注教师")+'</span>';tile.onclick=()=>showDetail(item);lane.appendChild(tile)})}
+    async function loadSaved(){const data=await api("/api/timetable").catch(()=>({items:[]}));savedItems=data.items||[];drawSchedule()}
+    async function init(){$("termStart").value=defaultTermStart();$("weekNumber").value=currentWeek;const session=await api("/api/session").catch(()=>({role:"visitor"}));if(session.role!=="admin")return;$("timetableLocked").style.display="none";$("timetableApp").style.display="grid";await loadSaved();$("termStart").onchange=()=>{localStorage.setItem("sl-term-start",$("termStart").value);drawSchedule()};$("weekNumber").onchange=()=>{currentWeek=Math.max(1,Number($("weekNumber").value||1));drawSchedule()};$("prevWeekBtn").onclick=()=>{currentWeek=Math.max(1,currentWeek-1);drawSchedule()};$("nextWeekBtn").onclick=()=>{currentWeek+=1;drawSchedule()};$("parsePdfBtn").onclick=async()=>{const file=$("pdfFile").files[0];if(!file){notice("请先选择 PDF 文件。");return}try{notice("正在解析 PDF...");previewItems=await pdfToCourses(file);savedItems=previewItems;drawSchedule();notice("已解析 "+previewItems.length+" 条课程，请检查周视图。")}catch(error){notice(error.message)}};$("savePreviewBtn").onclick=async()=>{if(!previewItems.length){notice("没有可保存的预览。");return}await api("/api/timetable",{method:"POST",body:JSON.stringify({replace:true,items:previewItems})});notice("已保存 "+previewItems.length+" 条课程到云端。");await loadSaved()};$("clearTimetableBtn").onclick=async()=>{await api("/api/timetable",{method:"DELETE"});previewItems=[];savedItems=[];drawSchedule();notice("已清空云端课表。")}}
     init();
   </script>
 </body>
