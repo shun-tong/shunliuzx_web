@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>对话终端 / shunliuzx.com</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <style>
+    .locked{max-width:620px}.chat-layout{align-items:stretch}.persona-form textarea{min-height:130px}.chat-window{min-height:520px;display:grid;grid-template-rows:auto 1fr auto;gap:12px}.chat-log{border:1px solid var(--line);background:rgba(255,255,255,.015);padding:12px;overflow:auto;max-height:560px}.msg{margin:0 0 12px;display:flex}.msg .bubble{max-width:min(760px,92%);border:1px solid var(--line);background:var(--panel);padding:11px 12px;white-space:pre-wrap;line-height:1.65}.msg.user{justify-content:flex-end}.msg.user .bubble{border-color:var(--accent);background:rgba(255,255,255,.07)}.msg.assistant .bubble{box-shadow:inset 3px 0 0 var(--accent)}.chat-input{display:grid;grid-template-columns:1fr auto;gap:10px}.chat-input textarea{min-height:72px;resize:vertical}.chat-meta{display:flex;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:12px}.danger-row{display:flex;gap:8px;flex-wrap:wrap}@media(max-width:860px){.chat-input{grid-template-columns:1fr}.chat-window{min-height:420px}}
+  </style>
+</head>
+<body data-page="chat" data-theme="wolf">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="mark">SL</div><div><h1>对话终端</h1><p>Private character line</p></div></div>
+      <nav class="nav">
+        <a href="/"><b>控制台</b><span>HOME</span></a>
+        <a href="/quotes/"><b>名句档案</b><span>Q-01</span></a>
+        <a href="/schedule/"><b>日程备忘</b><span>S-02</span></a>
+        <a href="/blog/"><b>记录库</b><span>B-03</span></a>
+        <a href="/review/"><b>复习计划</b><span>R-04</span></a>
+        <a href="/timetable/"><b>课表</b><span>T-05</span></a>
+        <a class="active" href="/chat/"><b>对话</b><span>C-06</span></a>
+      </nav>
+      <div class="themebox"><div class="seg"><button data-theme-set="wolf">冷白</button><button data-theme-set="amber">琥珀</button></div></div>
+    </aside>
+    <main class="content">
+      <section class="topline"><div><div class="kicker">C-06 / Admin Only</div><h2>对话终端</h2></div><div class="statusbar"><span class="chip" id="modelChip">DEEPSEEK</span><span class="chip">PRIVATE</span></div></section>
+      <section class="grid" id="chatLocked">
+        <div class="panel span-8 locked">
+          <h3>需要管理员权限</h3>
+          <p>这个板块会调用你的 DeepSeek API，并保存私人对话记录。请先在左侧输入管理员口令登录。</p>
+        </div>
+      </section>
+      <section class="grid chat-layout" id="chatApp" style="display:none">
+        <div class="panel span-4">
+          <h3>人设卡</h3>
+          <form class="form persona-form" id="personaForm">
+            <input id="characterName" required placeholder="角色名">
+            <textarea id="personaText" required placeholder="人设、语气、关系、边界"></textarea>
+            <textarea id="openingText" placeholder="开场白"></textarea>
+            <button class="primary" type="submit">保存人设</button>
+          </form>
+          <div class="notice" id="settingsNotice">等待载入。</div>
+          <div class="danger-row"><button class="danger" id="clearChatBtn" type="button">清空对话</button></div>
+        </div>
+        <div class="panel span-8 chat-window">
+          <div>
+            <h3>线路</h3>
+            <div class="chat-meta"><span id="readyText">检查 DeepSeek 连接...</span><span id="countText">0 条记录</span></div>
+          </div>
+          <div class="chat-log" id="chatLog"></div>
+          <form class="chat-input" id="chatForm">
+            <textarea id="messageText" required placeholder="输入消息"></textarea>
+            <button class="primary" type="submit">发送</button>
+          </form>
+        </div>
+      </section>
+      <footer>© 2026 shunliuzx.com</footer>
+    </main>
+  </div>
+  <script src="../assets/site.js"></script>
+  <script>
+    const $=id=>document.getElementById(id);
+    const esc=value=>String(value||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+    async function api(path,options){const res=await fetch(path,Object.assign({headers:{"content-type":"application/json"}},options||{}));const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||"请求失败");return data}
+    function drawMessages(messages){$("countText").textContent=(messages||[]).length+" 条记录";$("chatLog").innerHTML=(messages||[]).length?messages.map(msg=>'<div class="msg '+esc(msg.role)+'"><div class="bubble">'+esc(msg.content)+'</div></div>').join(""):'<div class="msg assistant"><div class="bubble">还没有对话。保存人设后可以直接开始。</div></div>';$("chatLog").scrollTop=$("chatLog").scrollHeight}
+    async function loadChat(){const data=await api("/api/chat");$("characterName").value=data.settings.character_name||"Terminal";$("personaText").value=data.settings.persona||"";$("openingText").value=data.settings.opening||"";$("modelChip").textContent=data.model||"DEEPSEEK";$("readyText").textContent=data.deepseekReady?"DeepSeek 已配置":"缺少 DEEPSEEK_API_KEY";$("settingsNotice").textContent="人设会保存在云端，只对管理员可见。";drawMessages(data.messages||[])}
+    async function initChat(){const session=await api("/api/session").catch(()=>({role:"visitor"}));if(session.role!=="admin")return;$("chatLocked").style.display="none";$("chatApp").style.display="grid";try{await loadChat()}catch(error){$("settingsNotice").textContent=error.message;$("readyText").textContent=error.message}$("personaForm").onsubmit=async event=>{event.preventDefault();$("settingsNotice").textContent="正在保存...";await api("/api/chat",{method:"PATCH",body:JSON.stringify({character_name:characterName.value,persona:personaText.value,opening:openingText.value})});$("settingsNotice").textContent="已保存人设。"};$("chatForm").onsubmit=async event=>{event.preventDefault();const text=messageText.value.trim();if(!text)return;messageText.value="";const old=chatForm.querySelector("button").textContent;chatForm.querySelector("button").disabled=true;chatForm.querySelector("button").textContent="等待";drawMessages([...(Array.from(document.querySelectorAll(".msg")).map(()=>null).filter(Boolean)),{role:"user",content:text}]);try{const data=await api("/api/chat",{method:"POST",body:JSON.stringify({message:text})});drawMessages(data.messages||[])}catch(error){$("settingsNotice").textContent=error.message;await loadChat().catch(()=>{})}chatForm.querySelector("button").disabled=false;chatForm.querySelector("button").textContent=old};$("clearChatBtn").onclick=async()=>{await api("/api/chat",{method:"DELETE"});drawMessages([]);$("settingsNotice").textContent="对话已清空。"}}
+    initChat();
+  </script>
+</body>
+</html>
