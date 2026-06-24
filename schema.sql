@@ -77,3 +77,18 @@ create table if not exists auth_attempts (
   locked_until integer default 0,
   updated_at integer not null
 );
+
+create table if not exists chat_settings (
+  id integer primary key check (id = 1),
+  character_name text default 'Terminal',
+  persona text default '',
+  opening text default '',
+  updated_at text default current_timestamp
+);
+
+create table if not exists chat_messages (
+  id integer primary key autoincrement,
+  role text not null,
+  content text not null,
+  created_at text default current_timestamp
+);
