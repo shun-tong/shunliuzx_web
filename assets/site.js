@@ -63,12 +63,18 @@
   }
   function syncAdminNavigation(){
     if(role!=="admin")return;
+    var entries=[
+      {href:"/timetable/",label:"\u8bfe\u8868",code:"T-05"},
+      {href:"/chat/",label:"\u5bf9\u8bdd",code:"C-06"}
+    ];
     document.querySelectorAll(".nav").forEach(function(nav){
-      if(nav.querySelector('[href="/timetable/"]'))return;
-      var link=document.createElement("a");
-      link.href="/timetable/";
-      link.innerHTML="<b>\u8bfe\u8868</b><span>T-05</span>";
-      nav.appendChild(link);
+      entries.forEach(function(entry){
+        if(nav.querySelector('[href="'+entry.href+'"]'))return;
+        var link=document.createElement("a");
+        link.href=entry.href;
+        link.innerHTML="<b>"+entry.label+"</b><span>"+entry.code+"</span>";
+        nav.appendChild(link);
+      });
     });
   }
   async function getCloud(path,fallbackKey,fallback){
