@@ -43,3 +43,30 @@ create table if not exists review_days (
   note text default '',
   created_at text default current_timestamp
 );
+
+create table if not exists blog_posts (
+  id integer primary key autoincrement,
+  title text not null,
+  summary text default '',
+  content text not null,
+  tag text default '随笔',
+  visible integer default 1,
+  created_at text default current_timestamp,
+  updated_at text default current_timestamp
+);
+
+create table if not exists timetable_courses (
+  id integer primary key autoincrement,
+  course_name text not null,
+  weekday integer not null,
+  weekday_label text not null,
+  start_section integer not null,
+  end_section integer not null,
+  weeks text default '',
+  campus text default '',
+  location text default '',
+  teacher text default '',
+  raw text default '',
+  source text default 'pdf',
+  created_at text default current_timestamp
+);
