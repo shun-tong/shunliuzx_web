@@ -30,8 +30,8 @@
   async function initSession(){
     try{
       var data=await api("/api/session");
+      role=data.role||"visitor";
       cloudReady=!!data.cloudReady;
-      role=cloudReady?(data.role||"visitor"):"local";
     }catch(e){
       role="local";
       cloudReady=false;
@@ -60,6 +60,16 @@
     };
     logoutBtn.onclick=async function(){await api("/api/auth",{method:"POST",body:JSON.stringify({action:"logout"})}).catch(function(){});location.reload()};
     sync();
+  }
+  function syncAdminNavigation(){
+    if(role!=="admin")return;
+    document.querySelectorAll(".nav").forEach(function(nav){
+      if(nav.querySelector('[href="/timetable/"]'))return;
+      var link=document.createElement("a");
+      link.href="/timetable/";
+      link.innerHTML="<b>\u8bfe\u8868</b><span>T-05</span>";
+      nav.appendChild(link);
+    });
   }
   async function getCloud(path,fallbackKey,fallback){
     try{return (await api(path)).items||await api(path)}catch(e){return read(fallbackKey,fallback)}
@@ -114,5 +124,5 @@
     form.onsubmit=async function(e){e.preventDefault();var item={now:phoneNow.value.trim(),mode:phoneMode.value,battery:phoneBattery.value,focus:phoneFocus.value,note:phoneNote.value.trim(),time:Date.now()};if(role==="admin"){await api("/api/status",{method:"POST",body:JSON.stringify(item)})}else{write("sl-status",item)}draw()};
     draw();
   }
-  initSession().then(function(){renderHome();quotes();schedule();status()});
+  initSession().then(function(){syncAdminNavigation();renderHome();quotes();schedule();status()});
 })();
