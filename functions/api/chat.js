@@ -4,6 +4,26 @@ const DEFAULT_MODEL = "deepseek-v4-flash";
 const DEFAULT_PERSONA = "你是 shunliuzx.com 私人终端中的对话角色。说话自然、克制、敏锐，允许有一点锋利的玩笑感，但始终对管理员保持可靠和亲近。";
 const DEFAULT_OPENING = "终端接通。说吧，今天要处理什么？";
 
+function hasText(value) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function deepSeekKey(env) {
+  return env.DEEPSEEK_API_KEY || env.DEEPSEEK_KEY || env.DEEPSEEK_APIKEY || "";
+}
+
+function envStatus(env) {
+  return {
+    hasDeepSeekApiKey: hasText(deepSeekKey(env)),
+    hasCanonicalDeepSeekApiKey: hasText(env.DEEPSEEK_API_KEY),
+    hasDeepSeekKeyAlias: hasText(env.DEEPSEEK_KEY) || hasText(env.DEEPSEEK_APIKEY),
+    hasAdminPassword: hasText(env.ADMIN_PASSWORD),
+    hasSessionSecret: hasText(env.SESSION_SECRET),
+    modelConfigured: hasText(env.DEEPSEEK_MODEL),
+    model: env.DEEPSEEK_MODEL || DEFAULT_MODEL
+  };
+}
+
 async function ensureTables(database) {
   await database.prepare(`
     create table if not exists chat_settings (
@@ -58,8 +78,9 @@ function systemPrompt(settings) {
 }
 
 async function callDeepSeek(env, settings, messages) {
-  if (!env.DEEPSEEK_API_KEY) {
-    throw new Error("DEEPSEEK_API_KEY is not configured");
+  const apiKey = deepSeekKey(env);
+  if (!hasText(apiKey)) {
+    throw new Error("后端没有读到 DEEPSEEK_API_KEY。请确认它在 Production 环境中，并在保存后重新部署。");
   }
   const payload = {
     model: env.DEEPSEEK_MODEL || DEFAULT_MODEL,
@@ -75,7 +96,7 @@ async function callDeepSeek(env, settings, messages) {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      "authorization": `Bearer ${env.DEEPSEEK_API_KEY}`
+      "authorization": `Bearer ${apiKey}`
     },
     body: JSON.stringify(payload)
   });
@@ -94,7 +115,8 @@ export async function onRequestGet({ request, env }) {
   if (!database) return missingDb();
   const settings = await readSettings(database);
   const messages = await readMessages(database);
-  return json({ settings, messages, model: env.DEEPSEEK_MODEL || DEFAULT_MODEL, deepseekReady: !!env.DEEPSEEK_API_KEY });
+  const status = envStatus(env);
+  return json({ settings, messages, model: status.model, deepseekReady: status.hasDeepSeekApiKey, envStatus: status });
 }
 
 export async function onRequestPatch({ request, env }) {
@@ -134,7 +156,7 @@ export async function onRequestPost({ request, env }) {
     reply = await callDeepSeek(env, settings, history);
   } catch (error) {
     await database.prepare("insert into chat_messages (role, content) values ('assistant', ?)").bind(`调用失败：${error.message}`).run();
-    return json({ error: error.message, messages: await readMessages(database) }, { status: 502 });
+    return json({ error: error.message, messages: await readMessages(database), envStatus: envStatus(env) }, { status: 502 });
   }
   await database.prepare("insert into chat_messages (role, content) values ('assistant', ?)").bind(reply).run();
   return json({ ok: true, reply, messages: await readMessages(database) });
