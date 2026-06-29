@@ -1,6 +1,6 @@
 import { body, json, requireAdmin } from "../_lib.js";
 
-const DEFAULT_MODEL = "deepseek-chat";
+const DEFAULT_MODEL = "deepseek-v4-flash";
 const weekdays = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"];
 
 function hasText(value) {
@@ -50,88 +50,73 @@ function extractJson(text) {
 
 function promptFor(text) {
   return [
-    "你要把一份中文大学课表整理成 JSON 数组。输入已经按页和星期分列，例如【星期一】下面的所有内容默认都属于星期一。",
+    "你要把中文大学课表候选项校正成 JSON 数组。输入已经按星期分组，例如【星期一】下面的所有课程都属于星期一。",
     "只输出 JSON 数组，不要 Markdown，不要解释。",
-    "每个课程对象必须包含这些字段：course_name, weekday, weekday_label, start_section, end_section, weeks, campus, location, teacher, raw。",
-    "weekday 用 1-7 表示星期一到星期日。weekday 必须优先由列标题【星期一】到【星期日】决定，不要从文本位置猜。",
-    "start_section 和 end_section 是第几节课，范围 1-14。形如 (7-9节) 表示 start_section=7,end_section=9。",
-    "课程卡片只需要真实课程，不要时间段、标题、姓名、学号、空白格。",
-    "如果同一课程在不同星期、不同节次或不同周次出现，拆成多条。",
+    "每个对象必须包含：course_name, weekday, weekday_label, start_section, end_section, weeks, campus, location, teacher, raw。",
+    "weekday 用 1-7 表示星期一到星期日，必须由【星期一】到【星期日】标题决定。",
+    "删除学号、姓名、课表标题、时间段、空白格等非课程项。",
+    "如果一条原文里黏连了多个课程，请拆成多条。",
+    "课程名优先取 ◇ 或 ◆ 前面的真实课程名，例如 高等数学ⅠB◇(1-3节) 的课程名是 高等数学ⅠB。",
+    "形如 (7-9节) 表示 start_section=7,end_section=9。",
     "如果地点是未排地点，location 写 未排地点。教师缺失可写空字符串。",
-    "每个课程的 raw 字段保留你依据的原始片段。",
-    "下面是已经按星期分列的课表文本：",
-    clean(text, 26000)
+    "下面是按星期分组后的课表候选：",
+    clean(text, 18000)
   ].join("\n");
 }
 
-function compactError(message, status = 500, extra = {}) {
-  return json({ error: message, ...extra }, { status });
-}
-
-async function callDeepSeek({ apiKey, model, text }) {
-  let response;
-  try {
-    response = await fetch("https://api.deepseek.com/chat/completions", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "authorization": `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: "你是严谨的课表结构化解析器，只输出合法 JSON。" },
-          { role: "user", content: promptFor(text) }
-        ],
-        temperature: 0,
-        max_tokens: 4096,
-        stream: false
-      })
-    });
-  } catch (error) {
-    throw new Error(`DeepSeek 网络调用失败：${error.message}`);
+async function callDeepSeek(env, text) {
+  const apiKey = deepSeekKey(env);
+  if (!hasText(apiKey)) {
+    throw new Error("后端没有读到 DEEPSEEK_API_KEY。请确认它在 Production 环境中，并在保存后重新部署。");
   }
-
-  const raw = await response.text();
-  let data = {};
-  try {
-    data = raw ? JSON.parse(raw) : {};
-  } catch {}
-
+  const model = env.DEEPSEEK_MODEL || DEFAULT_MODEL;
+  const payload = {
+    model,
+    messages: [
+      { role: "system", content: "你是严谨的课表结构化解析器，只输出合法 JSON。" },
+      { role: "user", content: promptFor(text) }
+    ],
+    temperature: 0,
+    max_tokens: 2048,
+    stream: false
+  };
+  const response = await fetch("https://api.deepseek.com/chat/completions", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "authorization": `Bearer ${apiKey}`
+    },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const detail = data.error?.message || clean(raw, 600) || `HTTP ${response.status}`;
-    throw new Error(`DeepSeek 请求失败：${detail}`);
+    throw new Error(data.error?.message || `DeepSeek 请求失败，HTTP ${response.status}`);
   }
-  return data;
+  return { data, model };
 }
 
 export async function onRequestPost({ request, env }) {
+  if (!(await requireAdmin(request, env))) return json({ error: "需要管理员权限" }, { status: 403 });
+  const input = await body(request);
+  const text = clean(input.text, 30000);
+  if (!text) return json({ error: "没有可交给 DeepSeek 的课表文本" }, { status: 400 });
+
+  let result;
   try {
-    if (!(await requireAdmin(request, env))) return compactError("需要管理员权限", 403);
-    const input = await body(request);
-    const text = clean(input.text, 50000);
-    if (!text) return compactError("没有可交给 DeepSeek 的 PDF 文本", 400);
-
-    const apiKey = deepSeekKey(env);
-    if (!hasText(apiKey)) {
-      return compactError("后端没有读到 DEEPSEEK_API_KEY", 503);
-    }
-
-    const model = clean(env.DEEPSEEK_MODEL || DEFAULT_MODEL, 80) || DEFAULT_MODEL;
-    const data = await callDeepSeek({ apiKey, model, text });
-
-    let parsed;
-    try {
-      parsed = extractJson(data.choices?.[0]?.message?.content);
-    } catch (error) {
-      return compactError(error.message, 502, { raw: clean(data.choices?.[0]?.message?.content, 2000), model });
-    }
-
-    const items = (Array.isArray(parsed) ? parsed : [])
-      .map(normalizeCourse)
-      .filter((item) => item.course_name && item.weekday >= 1 && item.weekday <= 7 && item.start_section >= 1);
-    return json({ ok: true, model, count: items.length, items });
+    result = await callDeepSeek(env, text);
   } catch (error) {
-    return compactError(error.message || "课表 AI 解析失败", 502);
+    return json({ error: error.message || "DeepSeek 请求失败" }, { status: 502 });
   }
+
+  let parsed;
+  try {
+    parsed = extractJson(result.data.choices?.[0]?.message?.content);
+  } catch (error) {
+    return json({ error: error.message, raw: clean(result.data.choices?.[0]?.message?.content, 2000), model: result.model }, { status: 502 });
+  }
+
+  const items = (Array.isArray(parsed) ? parsed : [])
+    .map(normalizeCourse)
+    .filter((item) => item.course_name && item.weekday >= 1 && item.weekday <= 7 && item.start_section >= 1);
+  return json({ ok: true, model: result.model, count: items.length, items });
 }
