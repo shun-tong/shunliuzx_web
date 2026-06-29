@@ -50,15 +50,16 @@ function extractJson(text) {
 
 function promptFor(text) {
   return [
-    "你要把一份中文大学课表文本整理成 JSON 数组。",
+    "你要把一份中文大学课表整理成 JSON 数组。输入已经按页和星期分列，例如【星期一】下面的所有内容默认都属于星期一。",
     "只输出 JSON 数组，不要 Markdown，不要解释。",
     "每个课程对象必须包含这些字段：course_name, weekday, weekday_label, start_section, end_section, weeks, campus, location, teacher, raw。",
-    "weekday 用 1-7 表示星期一到星期日。start_section 和 end_section 是第几节课，范围 1-14。",
+    "weekday 用 1-7 表示星期一到星期日。weekday 必须优先由列标题【星期一】到【星期日】决定，不要从文本位置猜。",
+    "start_section 和 end_section 是第几节课，范围 1-14。形如 (7-9节) 表示 start_section=7,end_section=9。",
     "课程卡片只需要真实课程，不要时间段、标题、姓名、学号、空白格。",
     "如果同一课程在不同星期、不同节次或不同周次出现，拆成多条。",
     "如果地点是未排地点，location 写 未排地点。教师缺失可写空字符串。",
-    "尽量从混乱的跨列表格文本中还原课程名、周次、校区、场地、教师。",
-    "下面是课表文本：",
+    "每个课程的 raw 字段保留你依据的原始片段。",
+    "下面是已经按星期分列的课表文本：",
     text
   ].join("\n");
 }
@@ -103,6 +104,8 @@ export async function onRequestPost({ request, env }) {
   } catch (error) {
     return json({ error: error.message, raw: clean(data.choices?.[0]?.message?.content, 2000) }, { status: 502 });
   }
-  const items = (Array.isArray(parsed) ? parsed : []).map(normalizeCourse).filter((item) => item.course_name && item.weekday >= 1 && item.weekday <= 7 && item.start_section >= 1);
+  const items = (Array.isArray(parsed) ? parsed : [])
+    .map(normalizeCourse)
+    .filter((item) => item.course_name && item.weekday >= 1 && item.weekday <= 7 && item.start_section >= 1);
   return json({ ok: true, model, count: items.length, items });
 }
