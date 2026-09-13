@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>我的 IP / shunliuzx.com</title><link rel="stylesheet" href="/assets/site.css">
+<style>main{max-width:760px;margin:8vh auto;padding:24px}#ip{font:600 clamp(22px,5vw,40px) monospace;overflow-wrap:anywhere;user-select:all;margin:24px 0}.actions{margin:20px 0}a{color:var(--text)}p{line-height:1.7;color:var(--muted)}</style></head>
+<body data-theme="wolf"><main><a href="/">← 返回首页</a><h1>我的公网 IP</h1><section class="panel">
+<p>当前浏览器访问本站时使用的网络出口地址</p><div id="ip" aria-live="polite">正在查询…</div>
+<div class="actions"><button id="refresh" class="primary">重新查询</button><button id="copy" disabled>复制 IP</button></div><p id="notice" role="status"></p></section>
+<p>使用 VPN 或代理时，可能显示其出口 IP；这不是局域网地址（如 192.168.x.x）。</p><noscript>请启用 JavaScript 后查询。</noscript></main>
+<script>
+const ip=document.getElementById("ip"),refresh=document.getElementById("refresh"),copy=document.getElementById("copy"),notice=document.getElementById("notice");
+async function lookup(){
+ refresh.disabled=true;copy.disabled=true;ip.textContent="正在查询…";notice.textContent="";
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);
+ try{
+  const response=await fetch("/api/ip",{cache:"no-store",signal:controller.signal});
+  if(!response.ok)throw new Error("查询暂时不可用，请稍后重试。");
+  const data=await response.json();
+  if(typeof data.ip!=="string"||!data.ip)throw new Error("未获取到 IP，请稍后重试。");
+  ip.textContent=data.ip;copy.disabled=false;notice.textContent="已更新 · "+new Date().toLocaleTimeString();
+ }catch(error){ip.textContent="查询失败";notice.textContent=error.name==="AbortError"?"请求超时，请点击重新查询。":error.message}
+ finally{clearTimeout(timer);refresh.disabled=false}
+}
+refresh.onclick=lookup;
+copy.onclick=async()=>{try{await navigator.clipboard.writeText(ip.textContent);notice.textContent="IP 已复制。"}catch{notice.textContent="无法自动复制，请选中上方 IP 手动复制。"}};
+lookup();
+</script></body></html>
