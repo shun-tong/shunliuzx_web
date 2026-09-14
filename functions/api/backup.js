@@ -9,4 +9,3 @@ export async function onRequestGet({request,env}) {
   const results=await database.batch(selected.map(name=>database.prepare("select * from "+name)));
   return json({format:"shunliuzx-backup",version:1,exportedAt:new Date().toISOString(),tables:Object.fromEntries(selected.map((name,i)=>[name,results[i].results||[]]))});
 }
-
