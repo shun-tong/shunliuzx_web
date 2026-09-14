@@ -47,11 +47,12 @@
       <footer>© 2026 shunliuzx.com</footer>
     </main>
   </div>
+  <script src="/assets/common.js"></script>
   <script src="../assets/site.js"></script>
   <script>
     const $=id=>document.getElementById(id);
     const esc=value=>String(value||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
-    async function api(path,options){const res=await fetch(path,Object.assign({headers:{"content-type":"application/json"}},options||{}));const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||"请求失败");return data}
+    const api = Site.api;
     function time(value){return value?new Date(value).toLocaleDateString("zh-CN"):"未标注日期"}
     function resetForm(){blogForm.reset();blogId.value="";blogVisible.checked=true;blogForm.querySelector("button.primary").textContent="发布"}
     async function loadPosts(){return (await api("/api/blogs")).items||[]}

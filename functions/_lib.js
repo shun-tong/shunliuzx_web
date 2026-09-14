@@ -3,6 +3,7 @@ export function json(data, init = {}) {
     ...init,
     headers: {
       "content-type": "application/json; charset=utf-8",
+      "cache-control": "private, no-store",
       ...(init.headers || {})
     }
   });
@@ -35,7 +36,8 @@ async function digest(value) {
 
 export async function sign(role, env) {
   const exp = Date.now() + 1000 * 60 * 60 * 24 * 14;
-  const secret = env.SESSION_SECRET || env.ADMIN_PASSWORD || "dev-secret";
+  const secret = env.SESSION_SECRET || env.ADMIN_PASSWORD;
+  if (!secret) throw new Error("请配置 SESSION_SECRET 或 ADMIN_PASSWORD");
   const sig = await digest(`${role}.${exp}.${secret}`);
   return btoa(`${role}.${exp}.${sig}`);
 }
@@ -45,8 +47,9 @@ export async function role(request, env) {
   if (!token) return "visitor";
   try {
     const [savedRole, exp, sig] = atob(token).split(".");
-    if (Date.now() > Number(exp)) return "visitor";
-    const secret = env.SESSION_SECRET || env.ADMIN_PASSWORD || "dev-secret";
+    if (!["admin", "visitor"].includes(savedRole) || !Number.isFinite(Number(exp)) || Date.now() > Number(exp)) return "visitor";
+    const secret = env.SESSION_SECRET || env.ADMIN_PASSWORD;
+    if (!secret) return "visitor";
     const expected = await digest(`${savedRole}.${exp}.${secret}`);
     return expected === sig ? savedRole : "visitor";
   } catch {

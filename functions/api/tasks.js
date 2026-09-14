@@ -12,7 +12,8 @@ export async function onRequestPost({ request, env }) {
   const database = db(env);
   if (!database) return missingDb();
   const input = await body(request);
-  await database.prepare("insert into tasks (title, time, level, note, done) values (?, ?, ?, ?, ?)").bind(input.title || "", input.time || "", input.level || "普通", input.note || "", input.done ? 1 : 0).run();
+  if (!String(input.title || "").trim()) return json({ error: "请填写任务名称" }, { status: 400 });
+  await database.prepare("insert into tasks (title, time, level, note, done) values (?, ?, ?, ?, ?)").bind(input.title.trim(), input.time || "", input.level || "普通", input.note || "", input.done ? 1 : 0).run();
   return json({ ok: true });
 }
 
@@ -21,8 +22,12 @@ export async function onRequestPatch({ request, env }) {
   const database = db(env);
   if (!database) return missingDb();
   const input = await body(request);
+  if (!input.id) return json({ error: "缺少任务编号" }, { status: 400 });
   if (input.toggle) {
     await database.prepare("update tasks set done = case done when 1 then 0 else 1 end where id = ?").bind(input.id).run();
+  } else {
+    if (!String(input.title || "").trim()) return json({ error: "请填写任务名称" }, { status: 400 });
+    await database.prepare("update tasks set title = ?, time = ?, level = ?, note = ? where id = ?").bind(input.title.trim(), input.time || "", input.level || "普通", input.note || "", input.id).run();
   }
   return json({ ok: true });
 }

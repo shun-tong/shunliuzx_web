@@ -35,28 +35,20 @@ export async function onRequestPost({ request, env }) {
   const database = db(env);
   if (!database) return missingDb();
   const input = await body(request);
-  const items = Array.isArray(input.items) ? input.items.map(course).filter((item) => item.course_name && item.weekday && item.start_section) : [];
-  if (input.replace) {
-    await database.prepare("delete from timetable_courses").run();
+  if (!Array.isArray(input.items) || !input.items.length || input.items.length > 500) {
+    return json({ error: "请提供 1–500 条课程；清空请使用清空按钮" }, { status: 400 });
   }
-  const insert = database.prepare(
-    "insert into timetable_courses (course_name, weekday, weekday_label, start_section, end_section, weeks, campus, location, teacher, raw, source) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-  );
-  for (const item of items) {
-    await insert.bind(
-      item.course_name,
-      item.weekday,
-      item.weekday_label,
-      item.start_section,
-      item.end_section || item.start_section,
-      item.weeks,
-      item.campus,
-      item.location,
-      item.teacher,
-      item.raw,
-      item.source
-    ).run();
+  const items = input.items.map(course);
+  if (items.some(item => !item.course_name || !Number.isInteger(item.weekday) || item.weekday < 1 || item.weekday > 7 ||
+      !Number.isInteger(item.start_section) || item.start_section < 1 || item.start_section > 14 ||
+      (item.end_section && (!Number.isInteger(item.end_section) || item.end_section < item.start_section || item.end_section > 14)))) {
+    return json({ error: "课程名称、星期或节次不正确，旧课表未修改" }, { status: 400 });
   }
+  const statements = [];
+  if (input.replace) statements.push(database.prepare("delete from timetable_courses"));
+  const insert = database.prepare("insert into timetable_courses (course_name, weekday, weekday_label, start_section, end_section, weeks, campus, location, teacher, raw, source) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  for (const item of items) statements.push(insert.bind(item.course_name, item.weekday, item.weekday_label, item.start_section, item.end_section || item.start_section, item.weeks, item.campus, item.location, item.teacher, item.raw, item.source));
+  await database.batch(statements);
   return json({ ok: true, count: items.length });
 }
 

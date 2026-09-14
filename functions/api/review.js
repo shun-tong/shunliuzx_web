@@ -31,6 +31,13 @@ export async function onRequestPatch({ request, env }) {
   const database = db(env);
   if (!database) return missingDb();
   const input = await body(request);
+  if (input.add_hours !== undefined) {
+    const hours = Number(input.add_hours);
+    if (!Number.isFinite(hours) || hours <= 0 || hours > 24) return json({ error: "复习时长应在 0–24 小时之间" }, { status: 400 });
+    await database.prepare("update review_subjects set spent_hours = spent_hours + ? where id = ?").bind(hours, input.id).run();
+    return json({ ok: true });
+  }
+  if (!Number.isFinite(Number(input.spent_hours)) || Number(input.spent_hours) < 0) return json({ error: "已花时间不能为负数" }, { status: 400 });
   await database.prepare("update review_subjects set spent_hours = ? where id = ?")
     .bind(Number(input.spent_hours || 0), input.id)
     .run();
