@@ -70,3 +70,7 @@ statements from `schema.sql` to enable the review planner.
 ### 原版图片牌面
 
 `rings/card-faces/` 包含从已下载工坊图集中按原牌编号裁出的 342 张 WebP（270 张物品牌、72 张规则牌），英文牌名与裁图共用原牌编号。物品牌缩放至 320×488，规则保留约 254×386。手牌显示原版牌面；棋盘词语旁有可放大的缩略图，待判定牌和原版规则也能查看大图。自定义文字牌仍可正常使用；手动修改成非原版文本的规则不显示原牌图片。图片与原游戏权利仍归原作者、出版社，不声称开源授权。
+
+### 音节辅助
+
+卡面外的英文按参考音节分别加下划线，不修改图片、原英文名称或真人判定。`rings/syllables.js` 覆盖 270 个默认物品，音节数对照 [CMUdict](https://github.com/cmusphinx/cmudict)，展示用的字母分段人工整理，非严格音标或断词规则。保留 CMUdict 许可于 `rings/CMUDICT-LICENSE.txt`。多读法词显示差异提示，专有名称显示参考读法；如 CAMERA、TOWEL、TIRE 等由全知者统一本局读法。未知导入词不自动猜测音节。

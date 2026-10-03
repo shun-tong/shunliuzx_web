@@ -1,4 +1,5 @@
 import { cardFace, ruleFace } from './card-media.js?v=20261003-faces';
+import { syllableInfo } from './syllables.js?v=20261003-syllables';
 const app = document.querySelector('#app');
 const keys = ['attribute', 'word', 'context'];
 const labels = { attribute: '属性', word: '词汇', context: '情境' };
@@ -14,6 +15,17 @@ const regions = [
   { label: '三个环都符合', short: '三者交集', x: 50, y: 49 }
 ];
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function syllableWord(word) {
+  const info = syllableInfo(word);
+  if (!info || word !== word.normalize('NFC')) return esc(word);
+  const title = `${info.parts.length} 音节参考读法${info.counts.length > 1 ? `；可能为 ${info.counts.join(' / ')} 音节` : ''}${info.note ? `；${info.note}` : ''}`;
+  let offset = 0;
+  const parts = info.parts.map(part => {
+    const text = word.slice(offset, offset + part.length); offset += part.length;
+    return `<span class="syllable-part">${esc(text)}</span>`;
+  }).join('');
+  return `<span class="syllable-word" title="${esc(title)}">${parts}</span>${info.note ? `<small class="syllable-note" title="${esc(title)}">${info.counts.length > 1 ? `${info.counts.join('/')} 音节 · 读法有差异` : '参考读法'}</small>` : ''}`;
+}
 let session = null, view = null, selectedCard = null, selectedMask = null;
 let busy = false, refreshing = false, status = '正在连接', pollTimer;
 let ruleDraft = null, judgeMask = null, judgeCard = null, lastRequest = null;
@@ -113,7 +125,7 @@ function showFace(button) {
   const src = button.dataset.previewSrc;
   if (!/^\/rings\/card-faces\/\d+\.webp$/.test(src || '')) return;
   const dialog = document.querySelector('#face-dialog');
-  document.querySelector('#face-title').textContent = button.dataset.previewTitle;
+  document.querySelector('#face-title').innerHTML = syllableWord(button.dataset.previewTitle);
   const img = document.querySelector('#face-large'); img.src = src; img.alt = `${button.dataset.previewTitle} 的原版牌面`;
   if (!dialog.open) dialog.showModal();
 }
@@ -154,21 +166,21 @@ function board() {
   const playable = view.phase === 'clues' ? view.me.isHost : view.phase === 'playing' && view.turn === view.me.id && !view.pending;
   return `<section class="panel board-panel"><div class="row spread"><h2 style="margin:0">${esc(turnText())}</h2><span class="muted" style="font-size:14px">剩余 ${view.deckCount} 张</span></div><div class="legend" style="margin-top:16px"><span class="attr"><i class="swatch"></i>属性</span><span class="word"><i class="swatch"></i>词汇</span><span class="context"><i class="swatch"></i>情境</span></div><p class="board-hint muted">词语显示在实际分类区域内；区域内可滚动，点击标题选择区域。</p><div class="board-scroll"><div class="board">${circles()}${regions.map((r, mask) => {
     const placed = view.board.filter(c => c.mask === mask), pending = view.pending?.mask === mask ? view.pending : null;
-    return `<section class="region region-panel ${selectedMask === mask ? 'selected' : ''} ${pending ? 'pending' : ''}" style="left:${r.x}%;top:${r.y}%" aria-label="${r.label}"><button class="region-title" data-region="${mask}" aria-pressed="${selectedMask === mask}">${r.short}<small>${placed.length} 张</small></button><div class="region-words" tabindex="0" aria-label="${r.label}中的词语">${placed.map(c => `<div class="region-word">${facePreview(c.card, "board-face")}<b>${esc(c.card.en)}</b>${c.card.zh ? `<small>${esc(c.card.zh)}</small>` : ''}</div>`).join('')}${pending ? `<div class="region-word awaiting">${facePreview(pending.card, "board-face")}<b>${esc(pending.card.en)}</b><small>${esc(pending.card.zh)} · 待判定</small></div>` : ''}${!placed.length && !pending ? '<span class="region-placeholder">暂无词语</span>' : ''}</div></section>`;
-  }).join('')}</div></div><div class="selection"><p>${selected ? `<b>${esc(selected.en)}</b>（${esc(selected.zh)}）` : '先选择下方的一张牌'}${selectedMask !== null ? `<br><span class="muted">区域：${regions[selectedMask].label}</span>` : '<br><span class="muted">点击棋盘区域可查看已放置的牌</span>'}</p>${playable ? `<button class="primary" id="place-card" ${!selected || selectedMask === null ? 'disabled' : ''}>${view.phase === 'clues' ? '放置线索' : '提交给全知者'}</button>` : ''}</div>${selectedMask !== null ? `<div style="margin-top:18px"><h3>${regions[selectedMask].label}的物品</h3><div class="board-cards">${view.board.filter(c => c.mask === selectedMask).map(c => `<span class="board-card">${facePreview(c.card, "detail-face")}<b>${esc(c.card.en)}</b><small>${esc(c.card.zh)}${c.clue ? ' · 线索' : ''}</small></span>`).join('') || '<p class="muted">这个区域还没有物品牌。</p>'}</div></div>` : ''}</section>`;
+    return `<section class="region region-panel ${selectedMask === mask ? 'selected' : ''} ${pending ? 'pending' : ''}" style="left:${r.x}%;top:${r.y}%" aria-label="${r.label}"><button class="region-title" data-region="${mask}" aria-pressed="${selectedMask === mask}">${r.short}<small>${placed.length} 张</small></button><div class="region-words" tabindex="0" aria-label="${r.label}中的词语">${placed.map(c => `<div class="region-word">${facePreview(c.card, "board-face")}<b>${syllableWord(c.card.en)}</b>${c.card.zh ? `<small>${esc(c.card.zh)}</small>` : ''}</div>`).join('')}${pending ? `<div class="region-word awaiting">${facePreview(pending.card, "board-face")}<b>${syllableWord(pending.card.en)}</b><small>${esc(pending.card.zh)} · 待判定</small></div>` : ''}${!placed.length && !pending ? '<span class="region-placeholder">暂无词语</span>' : ''}</div></section>`;
+  }).join('')}</div></div><div class="selection"><p>${selected ? `<b>${syllableWord(selected.en)}</b>（${esc(selected.zh)}）` : '先选择下方的一张牌'}${selectedMask !== null ? `<br><span class="muted">区域：${regions[selectedMask].label}</span>` : '<br><span class="muted">点击棋盘区域可查看已放置的牌</span>'}</p>${playable ? `<button class="primary" id="place-card" ${!selected || selectedMask === null ? 'disabled' : ''}>${view.phase === 'clues' ? '放置线索' : '提交给全知者'}</button>` : ''}</div>${selectedMask !== null ? `<div style="margin-top:18px"><h3>${regions[selectedMask].label}的物品</h3><div class="board-cards">${view.board.filter(c => c.mask === selectedMask).map(c => `<span class="board-card">${facePreview(c.card, "detail-face")}<b>${syllableWord(c.card.en)}</b><small>${esc(c.card.zh)}${c.clue ? ' · 线索' : ''}</small></span>`).join('') || '<p class="muted">这个区域还没有物品牌。</p>'}</div></div>` : ''}</section>`;
 }
 function judge() {
   if (!view.pending) return '';
   const p = view.pending;
-  if (!view.me.isHost) return `<section class="panel"><h3>正在等待判定</h3><div class="pending-card">${facePreview(p.card, "pending-face")}<strong>${esc(p.card.en)}</strong><p>${esc(p.card.zh)}</p></div><p class="muted">${esc(p.playerName)} 选择：${regions[p.mask].label}</p></section>`;
+  if (!view.me.isHost) return `<section class="panel"><h3>正在等待判定</h3><div class="pending-card">${facePreview(p.card, "pending-face")}<strong>${syllableWord(p.card.en)}</strong><p>${esc(p.card.zh)}</p></div><p class="muted">${esc(p.playerName)} 选择：${regions[p.mask].label}</p></section>`;
   if (judgeCard !== p.card.id) { judgeCard = p.card.id; judgeMask = p.mask; }
-  return `<section class="panel judge"><h3>全知者判定</h3><div class="pending-card">${facePreview(p.card, "pending-face")}<strong>${esc(p.card.en)}</strong><p>${esc(p.card.zh)}</p></div><p class="muted">${esc(p.playerName)} 选择：${regions[p.mask].label}</p><p style="font-size:14px;margin-bottom:0">勾选这件物品实际符合的规则：</p><div class="mask-choice">${keys.map((key, i) => `<label class="${classes[key]}"><input type="checkbox" data-judge-bit="${1 << i}" ${judgeMask & (1 << i) ? 'checked' : ''}>${labels[key]}</label>`).join('')}</div><p id="judge-target" class="muted" style="font-size:14px">正确区域：${regions[judgeMask].label}</p><button class="primary" id="confirm-judge">${judgeMask === p.mask ? '位置正确，允许继续出牌' : '纠正位置，摸牌并换人'}</button></section>`;
+  return `<section class="panel judge"><h3>全知者判定</h3><div class="pending-card">${facePreview(p.card, "pending-face")}<strong>${syllableWord(p.card.en)}</strong><p>${esc(p.card.zh)}</p></div><p class="muted">${esc(p.playerName)} 选择：${regions[p.mask].label}</p><p style="font-size:14px;margin-bottom:0">勾选这件物品实际符合的规则：</p><div class="mask-choice">${keys.map((key, i) => `<label class="${classes[key]}"><input type="checkbox" data-judge-bit="${1 << i}" ${judgeMask & (1 << i) ? 'checked' : ''}>${labels[key]}</label>`).join('')}</div><p id="judge-target" class="muted" style="font-size:14px">正确区域：${regions[judgeMask].label}</p><button class="primary" id="confirm-judge">${judgeMask === p.mask ? '位置正确，允许继续出牌' : '纠正位置，摸牌并换人'}</button></section>`;
 }
 function hand() {
   if (view.me.isHost && view.phase !== 'clues') return '';
   const cards = view.me.isHost ? view.clues : view.me.hand;
   const enabled = view.phase === 'clues' ? view.me.isHost : view.phase === 'playing' && view.me.id === view.turn && !view.pending;
-  return `<section class="panel hand-panel"><div class="hand-heading"><h2>${view.me.isHost ? '选择 3 张开局线索' : '你的手牌'} <span class="muted">${cards.length} 张</span></h2><p class="muted" style="font-size:14px">${enabled ? '选牌后点击棋盘区域' : '手牌只对你可见'}</p></div><div class="hand">${cards.map(card => `<div class="hand-item"><button class="card ${selectedCard === card.id ? 'selected' : ''}" data-card="${card.id}" aria-pressed="${selectedCard === card.id}" ${!enabled ? 'disabled' : ''}>${faceImage(card)}<strong>${esc(card.en)}</strong><span>${esc(card.zh)}</span></button>${cardFace(card) ? `<button class="card-zoom quiet small-button" data-preview-src="${cardFace(card)}" data-preview-title="${esc(card.en)}" aria-label="放大查看 ${esc(card.en)} 的牌面">查看大图</button>` : ''}</div>`).join('') || '<p class="muted">你已经清空手牌。</p>'}</div></section>`;
+  return `<section class="panel hand-panel"><div class="hand-heading"><h2>${view.me.isHost ? '选择 3 张开局线索' : '你的手牌'} <span class="muted">${cards.length} 张</span></h2><p class="muted" style="font-size:14px">${enabled ? '选牌后点击棋盘区域' : '手牌只对你可见'}</p></div><p class="syllable-help muted">英文每段下划线表示一个参考音节；悬停可查看说明，读法差异由全知者确认。</p><div class="hand">${cards.map(card => `<div class="hand-item"><button class="card ${selectedCard === card.id ? 'selected' : ''}" data-card="${card.id}" aria-pressed="${selectedCard === card.id}" ${!enabled ? 'disabled' : ''}>${faceImage(card)}<strong>${syllableWord(card.en)}</strong><span>${esc(card.zh)}</span></button>${cardFace(card) ? `<button class="card-zoom quiet small-button" data-preview-src="${cardFace(card)}" data-preview-title="${esc(card.en)}" aria-label="放大查看 ${esc(card.en)} 的牌面">查看大图</button>` : ''}</div>`).join('') || '<p class="muted">你已经清空手牌。</p>'}</div></section>`;
 }
 function game() {
   const winner = view.players.find(p => p.id === view.winner);

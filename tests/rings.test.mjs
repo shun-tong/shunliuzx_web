@@ -1,3 +1,4 @@
+import { SYLLABLES, syllableInfo } from '../rings/syllables.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { webcrypto } from 'node:crypto';
@@ -199,4 +200,22 @@ test('rule bags exhaust each set of 24 without repeats, persist, and avoid repea
   const player = joinRoom(room, '玩家', 'p');
   assert.equal(publicView(room, player.id, 1).ruleRemaining, null);
   assert.equal(publicView(room, player.id, 1).ruleDrawState, undefined);
+});
+
+
+test('syllable aid covers the original deck without changing spellings or hiding variants', () => {
+  assert.equal(Object.keys(SYLLABLES).length, CARDS.length);
+  for (const card of CARDS) {
+    const info = syllableInfo(card.en);
+    assert.ok(info, card.en);
+    assert.equal(info.parts.join(''), card.en);
+    assert.ok(info.counts.includes(info.parts.length), card.en);
+  }
+  for (const [word, count] of [['COMB',1], ['DICE',1], ['OCEAN',2], ['PIANO',3], ['I.D.',2], ['MJÖLNIR',2]])
+    assert.equal(syllableInfo(word).parts.length, count, word);
+  assert.deepEqual(syllableInfo('camera').counts, [2,3]);
+  assert.deepEqual(syllableInfo('TOWEL').counts, [1,2]);
+  assert.ok(syllableInfo('NECRONOMICON').note);
+  assert.equal(syllableInfo('my unknown imported word'), null);
+  assert.equal(syllableInfo(null), null);
 });

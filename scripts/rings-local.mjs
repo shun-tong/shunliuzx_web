@@ -23,7 +23,7 @@ const server = http.createServer(async (incoming, outgoing) => {
       outgoing.writeHead(response.status, Object.fromEntries(response.headers)); outgoing.end(await response.text()); return;
     }
     if (url.pathname === '/') { outgoing.writeHead(302, { location: '/rings/' }); outgoing.end(); return; }
-    const allowed = { '/rings/': 'index.html', '/rings/index.html': 'index.html', '/rings/game.js': 'game.js', '/rings/game.css': 'game.css', '/rings/favicon.svg': 'favicon.svg', '/rings/sample-pack.json': 'sample-pack.json' };
+    const allowed = { '/rings/syllables.js': 'syllables.js', '/rings/': 'index.html', '/rings/index.html': 'index.html', '/rings/game.js': 'game.js', '/rings/game.css': 'game.css', '/rings/favicon.svg': 'favicon.svg', '/rings/sample-pack.json': 'sample-pack.json' };
     const filename = /^\/rings\/card-faces\/\d+\.webp$/.test(url.pathname) ? url.pathname.slice('/rings/'.length) : url.pathname === '/rings/card-media.js' ? 'card-media.js' : allowed[url.pathname];
     if (!filename) { outgoing.writeHead(404); outgoing.end('Not found'); return; }
     const content = await fs.readFile(path.join(root, 'rings', filename));
