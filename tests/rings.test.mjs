@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { webcrypto } from 'node:crypto';
-import { CARDS } from '../functions/_rings-data.js';
+import { CARDS, RULES, DEFAULT_PACK } from '../functions/_rings-data.js';
 import { act, makePlayer, makeRoom, joinRoom, publicView } from '../functions/_rings-engine.js';
 import { onRequestGet, onRequestPost } from '../functions/api/rings.js';
 import { LocalDatabase } from '../scripts/rings-local-db.mjs';
@@ -14,8 +14,8 @@ function fixture() {
   for (let i = 0; i < 3; i++) act(room, host.id, { action: 'clue', cardId: room.clues[0].id, mask: i });
   return { room, host, one, two };
 }
-test('sample deck is unique and bilingual', () => {
-  assert.equal(CARDS.length, 180);
+test('workshop deck is unique and bilingual', () => {
+  assert.equal(CARDS.length, 270);
   assert.equal(new Set(CARDS.map(c => c.en)).size, CARDS.length);
   assert.ok(CARDS.every(c => c.en && c.zh));
 });
@@ -26,7 +26,7 @@ test('imported packs stay in their room, preserve English, hide unused cards and
   const pack = { name: '本地牌组', cards: Array.from({ length: 40 }, (_, i) => ({ en: `THING ${i}`, zh: '' })), rules: Object.fromEntries(['attribute', 'word', 'context'].map(key => [key, [{ en: `${key} rule`, zh: '辅助翻译' }]])) };
   assert.throws(() => act(room, one.id, { action: 'import', pack }), /只有全知者/);
   act(room, host.id, { action: 'import', pack });
-  assert.deepEqual(publicView(room, one.id, 0).pack, { name: '本地牌组', count: 40 });
+  assert.deepEqual(publicView(room, one.id, 0).pack, { name: '本地牌组', count: 40, ruleCounts: { attribute: 1, word: 1, context: 1 } });
   assert.equal(publicView(room, one.id, 0).rules, null);
   act(room, host.id, { action: 'start' });
   assert.ok(one.hand.every(c => c.en.startsWith('THING ') && c.zh === ''));
@@ -39,7 +39,7 @@ test('imported packs stay in their room, preserve English, hide unused cards and
   assert.throws(() => act(room, host.id, { action: 'import', pack }), /重复/);
   assert.equal(JSON.stringify(room.pack), before);
   act(room, host.id, { action: 'reset-pack' });
-  assert.equal(publicView(room, host.id, 0).pack.count, 180);
+  assert.equal(publicView(room, host.id, 0).pack.count, 270);
 });
 test('private views never expose rules, deck, tokens or other hands', () => {
   const { room, host, one, two } = fixture();
@@ -143,4 +143,43 @@ test('missing database and cross-origin posts fail safely', async () => {
   assert.equal(response.status, 503);
   response = await onRequestPost({ env: { SITE_DB: new LocalDatabase() }, request: new Request('https://example.com/api/rings', { method: 'POST', headers: { 'content-type': 'application/json', origin: 'https://evil.example' }, body: '{"action":"create","name":"n"}' }) });
   assert.equal(response.status, 403);
+});
+
+
+test('transcription covers every workshop card slot and preserves unusual spellings', () => {
+  const sizes = { 5: 20, 6: 47, 7: 14, 8: 9, 9: 46, 10: 48, 11: 11, 12: 23, 13: 20, 14: 32 };
+  const expected = Object.entries(sizes).flatMap(([sheet, count]) => Array.from({ length: count }, (_, i) => Number(sheet) * 100 + i));
+  assert.deepEqual(CARDS.map(c => c.sourceCardId), expected);
+  for (const [key, sheet] of [['attribute', 3], ['word', 2], ['context', 4]]) {
+    assert.equal(RULES[key].length, 24);
+    assert.equal(new Set(RULES[key].map(r => r[0])).size, 24);
+    assert.deepEqual(DEFAULT_PACK.rules[key].map(r => r.sourceCardId), Array.from({ length: 24 }, (_, i) => sheet * 100 + i));
+  }
+  assert.equal(CARDS.find(c => c.sourceCardId === 1100).en, 'I.D.');
+  assert.equal(CARDS.find(c => c.sourceCardId === 1301).en, 'MJÖLNIR');
+  assert.equal(CARDS.find(c => c.sourceCardId === 1431).zh, '棒球棒');
+  assert.equal(CARDS.find(c => c.sourceCardId === 1400).en, 'CHOCOLATES');
+  assert.equal(CARDS.find(c => c.sourceCardId === 935).en, 'YOYO');
+});
+
+test('rule bags exhaust each set of 24 without repeats, persist, and avoid repeating at boundaries', () => {
+  const host = makePlayer('主持', 'h'); let room = makeRoom('ABC234', host);
+  const draws = { attribute: [], word: [], context: [] };
+  for (let i = 0; i < 48; i++) {
+    if (i) act(room, host.id, { action: 'randomize' });
+    for (const key of Object.keys(draws)) {
+      const r = room.rules[key]; draws[key].push(r.en);
+      assert.ok(RULES[key].some(([en, zh]) => en === r.en && zh === r.zh));
+    }
+    room = JSON.parse(JSON.stringify(room));
+  }
+  for (const list of Object.values(draws)) {
+    assert.equal(new Set(list.slice(0, 24)).size, 24);
+    assert.equal(new Set(list.slice(24)).size, 24);
+    assert.notEqual(list[23], list[24]);
+  }
+  assert.deepEqual(publicView(room, host.id, 1).ruleRemaining, { attribute: 0, word: 0, context: 0 });
+  const player = joinRoom(room, '玩家', 'p');
+  assert.equal(publicView(room, player.id, 1).ruleRemaining, null);
+  assert.equal(publicView(room, player.id, 1).ruleDrawState, undefined);
 });

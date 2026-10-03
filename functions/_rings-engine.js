@@ -1,4 +1,4 @@
-import { CARDS, randomRules, shuffle } from './_rings-data.js';
+import { CARDS, RULES, DEFAULT_PACK, shuffle } from './_rings-data.js';
 
 export const ROOM_TTL = 24 * 60 * 60 * 1000;
 export class GameError extends Error {
@@ -29,9 +29,26 @@ function importedPack(value) {
   }
   return { name: value.name.trim(), cards, rules };
 }
+function rulePools(room) {
+  return room.pack?.rules || Object.fromEntries(Object.entries(RULES).map(([key, list]) => [key, list.map(([en, zh]) => ({ en, zh }))]));
+}
 function drawRules(room) {
-  if (!room.pack?.rules) return randomRules();
-  return Object.fromEntries(['attribute', 'word', 'context'].map(key => [key, shuffle(room.pack.rules[key])[0]]));
+  const pools = rulePools(room);
+  room.ruleDrawState ||= {};
+  return Object.fromEntries(['attribute', 'word', 'context'].map(key => {
+    const list = pools[key], signature = JSON.stringify(list.map(r => [r.en, r.zh]));
+    let state = room.ruleDrawState[key];
+    if (!state || state.signature !== signature || !state.remaining.length) {
+      state = { signature, remaining: shuffle(list.map((_, i) => i)) };
+      // At the shuffle boundary, avoid drawing the previous rule immediately again.
+      if (list.length > 1 && list[state.remaining.at(-1)].en === room.rules?.[key]?.en) {
+        [state.remaining[0], state.remaining[state.remaining.length - 1]] = [state.remaining.at(-1), state.remaining[0]];
+      }
+      room.ruleDrawState[key] = state;
+    }
+    const rule = list[state.remaining.pop()];
+    return [key, { en: rule.en, zh: rule.zh }];
+  }));
 }
 export function nickname(value) {
   if (typeof value !== 'string' || !value.trim() || value.trim().length > 20) fail('昵称需要 1–20 个字符');
@@ -49,12 +66,14 @@ export function makePlayer(name, tokenHash) {
   return { id: crypto.randomUUID(), name: nickname(name), tokenHash, hand: [] };
 }
 export function makeRoom(code, host) {
-  return {
+  const room = {
     code, host: host.id, players: [host], phase: 'lobby', round: 0,
-    rules: randomRules(), deck: [], board: [], clues: [], pending: null,
+    rules: {}, deck: [], board: [], clues: [], pending: null,
     turn: null, winner: null, outcome: null, history: [], receipts: [],
     createdAt: Date.now(), expiresAt: Date.now() + ROOM_TTL
   };
+  room.rules = drawRules(room);
+  return room;
 }
 export function publicView(room, playerId, version) {
   const me = room.players.find(p => p.id === playerId);
@@ -66,7 +85,8 @@ export function publicView(room, playerId, version) {
     host: room.host, me: { id: me.id, name: me.name, isHost, hand: me.hand },
     players: room.players.map(p => ({ id: p.id, name: p.name, count: p.hand.length })),
     rules: isHost || ended ? room.rules : null,
-    pack: { name: room.pack?.name || '自编示例牌组', count: room.pack?.cards.length || CARDS.length },
+    pack: { name: room.pack?.name || DEFAULT_PACK.name, count: room.pack?.cards.length || CARDS.length, ruleCounts: Object.fromEntries(Object.entries(rulePools(room)).map(([key, list]) => [key, list.length])) },
+    ruleRemaining: isHost ? Object.fromEntries(Object.entries(room.ruleDrawState || {}).map(([key, state]) => [key, state.remaining.length])) : null,
     clues: isHost ? room.clues : [], board: room.board, pending: room.pending,
     turn: room.turn, winner: room.winner, outcome: room.outcome,
     deckCount: room.deck.length, history: room.history, expiresAt: room.expiresAt
@@ -91,9 +111,9 @@ export function act(room, playerId, input) {
     case 'randomize':
       hostOnly(); lobbyOnly(); room.rules = drawRules(room); break;
     case 'import':
-      hostOnly(); lobbyOnly(); room.pack = importedPack(input.pack); room.rules = drawRules(room); break;
+      hostOnly(); lobbyOnly(); room.pack = importedPack(input.pack); delete room.ruleDrawState; room.rules = drawRules(room); break;
     case 'reset-pack':
-      hostOnly(); lobbyOnly(); delete room.pack; room.rules = randomRules(); break;
+      hostOnly(); lobbyOnly(); delete room.pack; delete room.ruleDrawState; room.rules = drawRules(room); break;
     case 'rules': {
       hostOnly(); lobbyOnly();
       const rules = {};
