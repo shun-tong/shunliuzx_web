@@ -1,3 +1,4 @@
+import { cardFace, ruleFace } from './card-media.js?v=20261003-faces';
 const app = document.querySelector('#app');
 const keys = ['attribute', 'word', 'context'];
 const labels = { attribute: '属性', word: '词汇', context: '情境' };
@@ -102,6 +103,20 @@ async function perform(payload) {
     }
   } finally { busy = false; document.body.classList.remove('busy'); schedulePoll(); }
 }
+function faceImage(card, face = cardFace(card), extraClass = '') {
+  return face ? `<img class="card-face ${extraClass}" src="${face}" alt="${esc(card.en)} 的原版牌面" loading="lazy" decoding="async">` : '';
+}
+function facePreview(card, extraClass = '', face = cardFace(card)) {
+  return face ? `<button type="button" class="face-preview ${extraClass}" data-preview-src="${face}" data-preview-title="${esc(card.en)}" aria-label="放大查看 ${esc(card.en)} 的牌面">${faceImage(card, face)}</button>` : '';
+}
+function showFace(button) {
+  const src = button.dataset.previewSrc;
+  if (!/^\/rings\/card-faces\/\d+\.webp$/.test(src || '')) return;
+  const dialog = document.querySelector('#face-dialog');
+  document.querySelector('#face-title').textContent = button.dataset.previewTitle;
+  const img = document.querySelector('#face-large'); img.src = src; img.alt = `${button.dataset.previewTitle} 的原版牌面`;
+  if (!dialog.open) dialog.showModal();
+}
 function circles() {
   return `<svg viewBox="0 0 900 700" aria-hidden="true"><circle cx="340" cy="270" r="220" fill="#37c6ec" fill-opacity=".055" stroke="#37c6ec" stroke-width="3"/><circle cx="560" cy="270" r="220" fill="#ffc348" fill-opacity=".045" stroke="#ffc348" stroke-width="3"/><circle cx="450" cy="450" r="220" fill="#ee70ae" fill-opacity=".055" stroke="#ee70ae" stroke-width="3"/></svg>`;
 }
@@ -117,7 +132,7 @@ function rules(edit = false) {
   if (edit && !ruleDraft) ruleDraft = structuredClone(view.rules);
   return `<section class="panel rules-panel"><h2>${view.phase === 'finished' ? '规则揭晓' : '隐藏规则 · 仅你可见'}</h2><div class="rules-grid">${keys.map(key => {
     const r = edit ? ruleDraft[key] : view.rules[key];
-    return `<div class="rule ${classes[key]}"><h3>${labels[key]}</h3>${edit ? `<label for="${key}-en">英文规则</label><textarea id="${key}-en" data-rule="${key}" data-lang="en" maxlength="200">${esc(r.en)}</textarea><label for="${key}-zh">中文辅助翻译</label><textarea id="${key}-zh" data-rule="${key}" data-lang="zh" maxlength="200">${esc(r.zh)}</textarea>` : `<p>${esc(r.en)}</p><p class="translation">${esc(r.zh)}</p>`}</div>`;
+    return `<div class="rule ${classes[key]}"><h3>${labels[key]}</h3>${facePreview(r, "rule-face", ruleFace(r, key))}${edit ? `<label for="${key}-en">英文规则</label><textarea id="${key}-en" data-rule="${key}" data-lang="en" maxlength="200">${esc(r.en)}</textarea><label for="${key}-zh">中文辅助翻译</label><textarea id="${key}-zh" data-rule="${key}" data-lang="zh" maxlength="200">${esc(r.zh)}</textarea>` : `<p>${esc(r.en)}</p><p class="translation">${esc(r.zh)}</p>`}</div>`;
   }).join('')}</div>${edit ? `<div class="row divider"><button class="primary" id="save-rules">保存规则</button><button class="quiet" data-action="randomize">重新抽取</button></div><p class="lobby-note">本轮牌堆剩余：属性 ${view.ruleRemaining?.attribute ?? "—"} / 词汇 ${view.ruleRemaining?.word ?? "—"} / 情境 ${view.ruleRemaining?.context ?? "—"}。<br>英文拼写不区分大小写，保留原牌标点与拼写。属性与情境按物品通常的状态判断，全知者应保持一致。</p>` : ''}</section>`;
 }
 function packPanel() {
@@ -139,21 +154,21 @@ function board() {
   const playable = view.phase === 'clues' ? view.me.isHost : view.phase === 'playing' && view.turn === view.me.id && !view.pending;
   return `<section class="panel board-panel"><div class="row spread"><h2 style="margin:0">${esc(turnText())}</h2><span class="muted" style="font-size:14px">剩余 ${view.deckCount} 张</span></div><div class="legend" style="margin-top:16px"><span class="attr"><i class="swatch"></i>属性</span><span class="word"><i class="swatch"></i>词汇</span><span class="context"><i class="swatch"></i>情境</span></div><p class="board-hint muted">词语显示在实际分类区域内；区域内可滚动，点击标题选择区域。</p><div class="board-scroll"><div class="board">${circles()}${regions.map((r, mask) => {
     const placed = view.board.filter(c => c.mask === mask), pending = view.pending?.mask === mask ? view.pending : null;
-    return `<section class="region region-panel ${selectedMask === mask ? 'selected' : ''} ${pending ? 'pending' : ''}" style="left:${r.x}%;top:${r.y}%" aria-label="${r.label}"><button class="region-title" data-region="${mask}" aria-pressed="${selectedMask === mask}">${r.short}<small>${placed.length} 张</small></button><div class="region-words" tabindex="0" aria-label="${r.label}中的词语">${placed.map(c => `<div class="region-word"><b>${esc(c.card.en)}</b>${c.card.zh ? `<small>${esc(c.card.zh)}</small>` : ''}</div>`).join('')}${pending ? `<div class="region-word awaiting"><b>${esc(pending.card.en)}</b><small>${esc(pending.card.zh)} · 待判定</small></div>` : ''}${!placed.length && !pending ? '<span class="region-placeholder">暂无词语</span>' : ''}</div></section>`;
-  }).join('')}</div></div><div class="selection"><p>${selected ? `<b>${esc(selected.en)}</b>（${esc(selected.zh)}）` : '先选择下方的一张牌'}${selectedMask !== null ? `<br><span class="muted">区域：${regions[selectedMask].label}</span>` : '<br><span class="muted">点击棋盘区域可查看已放置的牌</span>'}</p>${playable ? `<button class="primary" id="place-card" ${!selected || selectedMask === null ? 'disabled' : ''}>${view.phase === 'clues' ? '放置线索' : '提交给全知者'}</button>` : ''}</div>${selectedMask !== null ? `<div style="margin-top:18px"><h3>${regions[selectedMask].label}的物品</h3><div class="board-cards">${view.board.filter(c => c.mask === selectedMask).map(c => `<span class="board-card"><b>${esc(c.card.en)}</b><small>${esc(c.card.zh)}${c.clue ? ' · 线索' : ''}</small></span>`).join('') || '<p class="muted">这个区域还没有物品牌。</p>'}</div></div>` : ''}</section>`;
+    return `<section class="region region-panel ${selectedMask === mask ? 'selected' : ''} ${pending ? 'pending' : ''}" style="left:${r.x}%;top:${r.y}%" aria-label="${r.label}"><button class="region-title" data-region="${mask}" aria-pressed="${selectedMask === mask}">${r.short}<small>${placed.length} 张</small></button><div class="region-words" tabindex="0" aria-label="${r.label}中的词语">${placed.map(c => `<div class="region-word">${facePreview(c.card, "board-face")}<b>${esc(c.card.en)}</b>${c.card.zh ? `<small>${esc(c.card.zh)}</small>` : ''}</div>`).join('')}${pending ? `<div class="region-word awaiting">${facePreview(pending.card, "board-face")}<b>${esc(pending.card.en)}</b><small>${esc(pending.card.zh)} · 待判定</small></div>` : ''}${!placed.length && !pending ? '<span class="region-placeholder">暂无词语</span>' : ''}</div></section>`;
+  }).join('')}</div></div><div class="selection"><p>${selected ? `<b>${esc(selected.en)}</b>（${esc(selected.zh)}）` : '先选择下方的一张牌'}${selectedMask !== null ? `<br><span class="muted">区域：${regions[selectedMask].label}</span>` : '<br><span class="muted">点击棋盘区域可查看已放置的牌</span>'}</p>${playable ? `<button class="primary" id="place-card" ${!selected || selectedMask === null ? 'disabled' : ''}>${view.phase === 'clues' ? '放置线索' : '提交给全知者'}</button>` : ''}</div>${selectedMask !== null ? `<div style="margin-top:18px"><h3>${regions[selectedMask].label}的物品</h3><div class="board-cards">${view.board.filter(c => c.mask === selectedMask).map(c => `<span class="board-card">${facePreview(c.card, "detail-face")}<b>${esc(c.card.en)}</b><small>${esc(c.card.zh)}${c.clue ? ' · 线索' : ''}</small></span>`).join('') || '<p class="muted">这个区域还没有物品牌。</p>'}</div></div>` : ''}</section>`;
 }
 function judge() {
   if (!view.pending) return '';
   const p = view.pending;
-  if (!view.me.isHost) return `<section class="panel"><h3>正在等待判定</h3><div class="pending-card"><strong>${esc(p.card.en)}</strong><p>${esc(p.card.zh)}</p></div><p class="muted">${esc(p.playerName)} 选择：${regions[p.mask].label}</p></section>`;
+  if (!view.me.isHost) return `<section class="panel"><h3>正在等待判定</h3><div class="pending-card">${facePreview(p.card, "pending-face")}<strong>${esc(p.card.en)}</strong><p>${esc(p.card.zh)}</p></div><p class="muted">${esc(p.playerName)} 选择：${regions[p.mask].label}</p></section>`;
   if (judgeCard !== p.card.id) { judgeCard = p.card.id; judgeMask = p.mask; }
-  return `<section class="panel judge"><h3>全知者判定</h3><div class="pending-card"><strong>${esc(p.card.en)}</strong><p>${esc(p.card.zh)}</p></div><p class="muted">${esc(p.playerName)} 选择：${regions[p.mask].label}</p><p style="font-size:14px;margin-bottom:0">勾选这件物品实际符合的规则：</p><div class="mask-choice">${keys.map((key, i) => `<label class="${classes[key]}"><input type="checkbox" data-judge-bit="${1 << i}" ${judgeMask & (1 << i) ? 'checked' : ''}>${labels[key]}</label>`).join('')}</div><p id="judge-target" class="muted" style="font-size:14px">正确区域：${regions[judgeMask].label}</p><button class="primary" id="confirm-judge">${judgeMask === p.mask ? '位置正确，允许继续出牌' : '纠正位置，摸牌并换人'}</button></section>`;
+  return `<section class="panel judge"><h3>全知者判定</h3><div class="pending-card">${facePreview(p.card, "pending-face")}<strong>${esc(p.card.en)}</strong><p>${esc(p.card.zh)}</p></div><p class="muted">${esc(p.playerName)} 选择：${regions[p.mask].label}</p><p style="font-size:14px;margin-bottom:0">勾选这件物品实际符合的规则：</p><div class="mask-choice">${keys.map((key, i) => `<label class="${classes[key]}"><input type="checkbox" data-judge-bit="${1 << i}" ${judgeMask & (1 << i) ? 'checked' : ''}>${labels[key]}</label>`).join('')}</div><p id="judge-target" class="muted" style="font-size:14px">正确区域：${regions[judgeMask].label}</p><button class="primary" id="confirm-judge">${judgeMask === p.mask ? '位置正确，允许继续出牌' : '纠正位置，摸牌并换人'}</button></section>`;
 }
 function hand() {
   if (view.me.isHost && view.phase !== 'clues') return '';
   const cards = view.me.isHost ? view.clues : view.me.hand;
   const enabled = view.phase === 'clues' ? view.me.isHost : view.phase === 'playing' && view.me.id === view.turn && !view.pending;
-  return `<section class="panel hand-panel"><div class="hand-heading"><h2>${view.me.isHost ? '选择 3 张开局线索' : '你的手牌'} <span class="muted">${cards.length} 张</span></h2><p class="muted" style="font-size:14px">${enabled ? '选牌后点击棋盘区域' : '手牌只对你可见'}</p></div><div class="hand">${cards.map(card => `<button class="card ${selectedCard === card.id ? 'selected' : ''}" data-card="${card.id}" aria-pressed="${selectedCard === card.id}" ${!enabled ? 'disabled' : ''}><strong>${esc(card.en)}</strong><span>${esc(card.zh)}</span></button>`).join('') || '<p class="muted">你已经清空手牌。</p>'}</div></section>`;
+  return `<section class="panel hand-panel"><div class="hand-heading"><h2>${view.me.isHost ? '选择 3 张开局线索' : '你的手牌'} <span class="muted">${cards.length} 张</span></h2><p class="muted" style="font-size:14px">${enabled ? '选牌后点击棋盘区域' : '手牌只对你可见'}</p></div><div class="hand">${cards.map(card => `<div class="hand-item"><button class="card ${selectedCard === card.id ? 'selected' : ''}" data-card="${card.id}" aria-pressed="${selectedCard === card.id}" ${!enabled ? 'disabled' : ''}>${faceImage(card)}<strong>${esc(card.en)}</strong><span>${esc(card.zh)}</span></button>${cardFace(card) ? `<button class="card-zoom quiet small-button" data-preview-src="${cardFace(card)}" data-preview-title="${esc(card.en)}" aria-label="放大查看 ${esc(card.en)} 的牌面">查看大图</button>` : ''}</div>`).join('') || '<p class="muted">你已经清空手牌。</p>'}</div></section>`;
 }
 function game() {
   const winner = view.players.find(p => p.id === view.winner);
@@ -183,6 +198,7 @@ async function copy(value) {
 function invite() { return `${location.origin}/rings/?room=${view.code}`; }
 function rulesPayload() { return { action: 'rules', rules: ruleDraft || view.rules }; }
 function bindRoom() {
+  document.querySelectorAll('[data-preview-src]').forEach(button => button.addEventListener('click', () => showFace(button)));
   document.querySelector('#import-pack')?.addEventListener('change', async event => {
     const file = event.target.files[0]; if (!file) return;
     if (file.size > 200000) { toast('文字牌组文件最多 200 KB，请不要嵌入图片'); event.target.value = ''; return; }
@@ -215,3 +231,7 @@ function bindRoom() {
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
 if (session?.token && session?.code) { refresh(); } else { session = null; render(); }
+
+const faceDialog = document.querySelector('#face-dialog');
+document.querySelector('#face-close').addEventListener('click', () => faceDialog.close());
+faceDialog.addEventListener('click', event => { if (event.target === faceDialog) faceDialog.close(); });

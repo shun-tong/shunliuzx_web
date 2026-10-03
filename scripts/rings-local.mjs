@@ -24,10 +24,10 @@ const server = http.createServer(async (incoming, outgoing) => {
     }
     if (url.pathname === '/') { outgoing.writeHead(302, { location: '/rings/' }); outgoing.end(); return; }
     const allowed = { '/rings/': 'index.html', '/rings/index.html': 'index.html', '/rings/game.js': 'game.js', '/rings/game.css': 'game.css', '/rings/favicon.svg': 'favicon.svg', '/rings/sample-pack.json': 'sample-pack.json' };
-    const filename = allowed[url.pathname];
+    const filename = /^\/rings\/card-faces\/\d+\.webp$/.test(url.pathname) ? url.pathname.slice('/rings/'.length) : url.pathname === '/rings/card-media.js' ? 'card-media.js' : allowed[url.pathname];
     if (!filename) { outgoing.writeHead(404); outgoing.end('Not found'); return; }
     const content = await fs.readFile(path.join(root, 'rings', filename));
-    const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json; charset=utf-8' };
+    const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.json': 'application/json; charset=utf-8' };
     outgoing.writeHead(200, { 'content-type': types[path.extname(filename)], 'cache-control': 'no-store' }); outgoing.end(content);
   } catch (error) { console.error(error.message); outgoing.writeHead(500); outgoing.end('Local preview error'); }
 });

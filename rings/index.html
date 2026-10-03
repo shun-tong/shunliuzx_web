@@ -6,17 +6,18 @@
   <meta name="description" content="三个环，三条隐藏规则。邀请朋友一起推理，由真人全知者判定。">
   <title>环中推理 · shunliuzx</title>
   <link rel="icon" type="image/svg+xml" href="/rings/favicon.svg">
-  <link rel="stylesheet" href="/rings/game.css?v=20261003-workshop-72">
-  <script type="module" src="/rings/game.js?v=20261003-workshop-72"></script>
+  <link rel="stylesheet" href="/rings/game.css?v=20261003-faces">
+  <script type="module" src="/rings/game.js?v=20261003-faces"></script>
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="/rings/" aria-label="环中推理首页"><span class="brand-mark" aria-hidden="true">◎</span><span>环中推理<small>RINGS / 文字版</small></span></a>
+    <a class="brand" href="/rings/" aria-label="环中推理首页"><span class="brand-mark" aria-hidden="true">◎</span><span>环中推理<small>RINGS / 图文版</small></span></a>
     <a class="back" href="/">返回个人网站</a>
   </header>
   <main id="app"><p class="loading">正在准备牌桌…</p></main>
   <div id="feedback" class="feedback" role="status" aria-live="polite" hidden></div>
-  <footer>英文名称用于词汇规则，中文仅辅助理解。工坊文字转录 / 房间导入 · 真人判定</footer>
+  <dialog id="face-dialog" aria-labelledby="face-title"><div class="face-dialog-heading"><h2 id="face-title"></h2><button id="face-close" type="button" aria-label="关闭牌面大图">关闭</button></div><img id="face-large" alt=""><p class="muted">原版牌面 · 可按 Esc 关闭</p></dialog>
+  <footer>英文名称用于词汇规则，中文仅辅助理解。工坊牌组 / 房间导入 · 真人判定</footer>
 </body>
 </html>
 

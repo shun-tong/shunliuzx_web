@@ -1,4 +1,4 @@
-// Manually transcribed from the 13 downloaded Workshop sheets; no image assets bundled.
+// Manually transcribed from 13 Workshop sheets; original card faces are in rings/card-faces.
 // Original game rights remain with its creators and publisher; see WORKSHOP_PACK.source.
 export const WORKSHOP_PACK = {
   "name": "Things in Rings · 工坊文字牌组（含扩展）",

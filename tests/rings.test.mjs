@@ -5,7 +5,24 @@ import { CARDS, RULES, DEFAULT_PACK } from '../functions/_rings-data.js';
 import { act, makePlayer, makeRoom, joinRoom, publicView } from '../functions/_rings-engine.js';
 import { onRequestGet, onRequestPost } from '../functions/api/rings.js';
 import { LocalDatabase } from '../scripts/rings-local-db.mjs';
+import { cardFace, ruleFace, facePath } from '../rings/card-media.js';
+import { statSync } from 'node:fs';
 globalThis.crypto ??= webcrypto;
+
+test('all 342 card faces map to existing files; text-only cards and edited rules have no false images', () => {
+  for (const card of CARDS) {
+    assert.equal(cardFace(card), `/rings/card-faces/${card.sourceCardId}.webp`);
+    assert.ok(statSync(new URL(`../rings/card-faces/${card.sourceCardId}.webp`, import.meta.url)).size > 100);
+  }
+  for (const [category, rules] of Object.entries(DEFAULT_PACK.rules)) for (const rule of rules) {
+    assert.equal(ruleFace(rule, category), `/rings/card-faces/${rule.sourceCardId}.webp`);
+    assert.ok(statSync(new URL(`../rings/card-faces/${rule.sourceCardId}.webp`, import.meta.url)).size > 100);
+  }
+  assert.equal(cardFace({ id: 'import-0', en: 'APPLE' }), null);
+  assert.equal(ruleFace({ en: 'My own rule' }, 'word'), null);
+  assert.equal(facePath(9999), null); assert.equal(facePath('../500'), null);
+  assert.equal(cardFace({ id: 'workshop-1431' }), '/rings/card-faces/1431.webp');
+});
 
 function fixture() {
   const host = makePlayer('全知者', 'host-secret'), room = makeRoom('ABC234', host);
