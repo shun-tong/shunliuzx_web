@@ -19,6 +19,28 @@ test('sample deck is unique and bilingual', () => {
   assert.equal(new Set(CARDS.map(c => c.en)).size, CARDS.length);
   assert.ok(CARDS.every(c => c.en && c.zh));
 });
+
+test('imported packs stay in their room, preserve English, hide unused cards and survive restart', () => {
+  const host = makePlayer('主持', 'h'), room = makeRoom('ABC234', host);
+  const one = joinRoom(room, '一', 'p'); joinRoom(room, '二', 'q');
+  const pack = { name: '本地牌组', cards: Array.from({ length: 40 }, (_, i) => ({ en: `THING ${i}`, zh: '' })), rules: Object.fromEntries(['attribute', 'word', 'context'].map(key => [key, [{ en: `${key} rule`, zh: '辅助翻译' }]])) };
+  assert.throws(() => act(room, one.id, { action: 'import', pack }), /只有全知者/);
+  act(room, host.id, { action: 'import', pack });
+  assert.deepEqual(publicView(room, one.id, 0).pack, { name: '本地牌组', count: 40 });
+  assert.equal(publicView(room, one.id, 0).rules, null);
+  act(room, host.id, { action: 'start' });
+  assert.ok(one.hand.every(c => c.en.startsWith('THING ') && c.zh === ''));
+  assert.equal(room.rules.word.en, 'word rule');
+  assert.throws(() => act(room, host.id, { action: 'reset-pack' }), /准备阶段/);
+  room.phase = 'finished'; act(room, host.id, { action: 'restart' });
+  assert.equal(room.pack.cards.length, 40);
+  const before = JSON.stringify(room.pack);
+  pack.cards[1].en = pack.cards[0].en;
+  assert.throws(() => act(room, host.id, { action: 'import', pack }), /重复/);
+  assert.equal(JSON.stringify(room.pack), before);
+  act(room, host.id, { action: 'reset-pack' });
+  assert.equal(publicView(room, host.id, 0).pack.count, 180);
+});
 test('private views never expose rules, deck, tokens or other hands', () => {
   const { room, host, one, two } = fixture();
   const view = publicView(room, one.id, 1), raw = JSON.stringify(view);

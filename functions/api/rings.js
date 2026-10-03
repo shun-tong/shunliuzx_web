@@ -43,7 +43,7 @@ async function respond(context, method) {
       if (origin && origin !== new URL(request.url).origin) throw new GameError('不允许跨网站操作', 403);
       if (!request.headers.get('content-type')?.includes('application/json')) throw new GameError('请求格式不正确', 415);
       const raw = await request.text();
-      if (raw.length > 6000) throw new GameError('请求内容过长', 413);
+      if (raw.length > 200000) throw new GameError('请求内容过长', 413);
       let input;
       try { input = JSON.parse(raw); } catch { throw new GameError('请求内容不是有效的数据'); }
       if (!input || typeof input !== 'object') throw new GameError('请求格式不正确');

@@ -5,6 +5,34 @@ export class GameError extends Error {
   constructor(message, status = 400) { super(message); this.status = status; }
 }
 const fail = (message, status) => { throw new GameError(message, status); };
+function importedPack(value) {
+  if (!value || typeof value.name !== 'string' || !value.name.trim() || value.name.length > 80 || !Array.isArray(value.cards) || value.cards.length < 30 || value.cards.length > 500) fail('牌组需要名称和 30–500 张物品牌');
+  const seen = new Set();
+  const cards = value.cards.map((card, i) => {
+    if (!card || typeof card.en !== 'string' || !card.en.trim() || card.en.length > 80 || (card.zh != null && (typeof card.zh !== 'string' || card.zh.length > 80))) fail('每张牌需要英文名称，英文和中文各最多 80 字符');
+    const en = card.en.trim(), key = en.toLowerCase();
+    if (seen.has(key)) fail(`重复的英文名称：${en}`);
+    seen.add(key);
+    return { id: `import-${i}`, en, zh: (card.zh || '').trim() };
+  });
+  let rules = null;
+  if (value.rules != null) {
+    rules = {};
+    for (const key of ['attribute', 'word', 'context']) {
+      const list = value.rules[key];
+      if (!Array.isArray(list) || !list.length || list.length > 100) fail('规则牌组需要属性、词汇、情境三类，每类 1–100 条');
+      rules[key] = list.map(r => {
+        if (!r || typeof r.en !== 'string' || !r.en.trim() || r.en.length > 200 || (r.zh != null && (typeof r.zh !== 'string' || r.zh.length > 200))) fail('规则需要英文文本，每段最多 200 字符');
+        return { en: r.en.trim(), zh: (r.zh || '').trim() };
+      });
+    }
+  }
+  return { name: value.name.trim(), cards, rules };
+}
+function drawRules(room) {
+  if (!room.pack?.rules) return randomRules();
+  return Object.fromEntries(['attribute', 'word', 'context'].map(key => [key, shuffle(room.pack.rules[key])[0]]));
+}
 export function nickname(value) {
   if (typeof value !== 'string' || !value.trim() || value.trim().length > 20) fail('昵称需要 1–20 个字符');
   return value.trim();
@@ -38,6 +66,7 @@ export function publicView(room, playerId, version) {
     host: room.host, me: { id: me.id, name: me.name, isHost, hand: me.hand },
     players: room.players.map(p => ({ id: p.id, name: p.name, count: p.hand.length })),
     rules: isHost || ended ? room.rules : null,
+    pack: { name: room.pack?.name || '自编示例牌组', count: room.pack?.cards.length || CARDS.length },
     clues: isHost ? room.clues : [], board: room.board, pending: room.pending,
     turn: room.turn, winner: room.winner, outcome: room.outcome,
     deckCount: room.deck.length, history: room.history, expiresAt: room.expiresAt
@@ -60,7 +89,11 @@ export function act(room, playerId, input) {
   const lobbyOnly = () => { if (room.phase !== 'lobby') fail('只能在准备阶段操作', 409); };
   switch (input.action) {
     case 'randomize':
-      hostOnly(); lobbyOnly(); room.rules = randomRules(); break;
+      hostOnly(); lobbyOnly(); room.rules = drawRules(room); break;
+    case 'import':
+      hostOnly(); lobbyOnly(); room.pack = importedPack(input.pack); room.rules = drawRules(room); break;
+    case 'reset-pack':
+      hostOnly(); lobbyOnly(); delete room.pack; room.rules = randomRules(); break;
     case 'rules': {
       hostOnly(); lobbyOnly();
       const rules = {};
@@ -79,7 +112,7 @@ export function act(room, playerId, input) {
       hostOnly(); lobbyOnly();
       // Competitive mode needs one Knower and at least two Finders.
       if (room.players.length < 3) fail('竞技模式需要至少 3 人：1 名全知者和 2 名猜测者');
-      room.deck = shuffle(CARDS); room.board = []; room.pending = null;
+      room.deck = shuffle(room.pack?.cards || CARDS); room.board = []; room.pending = null;
       room.winner = null; room.outcome = null; room.history = []; room.round++;
       for (const p of room.players) p.hand = p.id === room.host ? [] : room.deck.splice(0, 5);
       room.clues = room.deck.splice(0, 5); room.phase = 'clues'; room.turn = null;
@@ -143,7 +176,7 @@ export function act(room, playerId, input) {
       if (room.phase !== 'finished') fail('请等本局结束后再开启下一局', 409);
       room.phase = 'lobby'; room.deck = []; room.board = []; room.clues = [];
       room.pending = null; room.turn = null; room.winner = null; room.outcome = null;
-      room.rules = randomRules(); room.players.forEach(p => { p.hand = []; });
+      room.rules = drawRules(room); room.players.forEach(p => { p.hand = []; });
       room.history = []; break;
     case 'leave':
       lobbyOnly();

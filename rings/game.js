@@ -90,7 +90,7 @@ async function perform(payload) {
     if (!data.view) { forgetSession(); return; }
     view = data.view;
     if (['play', 'clue', 'start', 'restart'].includes(payload.action)) { selectedCard = null; selectedMask = null; }
-    if (['restart', 'randomize', 'rules'].includes(payload.action)) ruleDraft = null;
+    if (['restart', 'randomize', 'rules', 'import', 'reset-pack'].includes(payload.action)) ruleDraft = null;
     if (payload.action === 'rules') toast('隐藏规则已保存');
     render();
   } catch (error) {
@@ -120,8 +120,11 @@ function rules(edit = false) {
     return `<div class="rule ${classes[key]}"><h3>${labels[key]}</h3>${edit ? `<label for="${key}-en">英文规则</label><textarea id="${key}-en" data-rule="${key}" data-lang="en" maxlength="200">${esc(r.en)}</textarea><label for="${key}-zh">中文辅助翻译</label><textarea id="${key}-zh" data-rule="${key}" data-lang="zh" maxlength="200">${esc(r.zh)}</textarea>` : `<p>${esc(r.en)}</p><p class="translation">${esc(r.zh)}</p>`}</div>`;
   }).join('')}</div>${edit ? '<div class="row divider"><button class="primary" id="save-rules">保存规则</button><button class="quiet" data-action="randomize">重新抽取</button></div><p class="lobby-note">英文拼写不区分大小写。属性与情境按物品通常的状态判断，全知者应保持一致。</p>' : ''}</section>`;
 }
+function packPanel() {
+  return `<section class="panel pack-panel"><h3>本房间牌组</h3><p>${esc(view.pack?.name || '自编示例牌组')} · ${view.pack?.count || 180} 张</p>${view.me.isHost ? `<label class="pack-label" for="import-pack">导入文字牌组（JSON）</label><input id="import-pack" type="file" accept=".json,application/json"><a class="pack-example" href="/rings/sample-pack.json" download>下载文字牌组示例</a><p class="lobby-note">只需全知者导入，朋友加入后会使用同一副牌。英文名称用于判断，中文可留空。牌组文字会存入本房间并发给参与者；图片不上传。</p><button class="quiet small-button" data-action="reset-pack">恢复示例牌组</button>` : ''}</section>`;
+}
 function lobby() {
-  return `<div class="roomgrid"><div>${view.me.isHost ? `${rules(true)}<section class="panel" style="margin-top:18px"><div class="row spread"><div><h3>准备好了吗？</h3><p class="muted" style="margin:0">至少 3 人，每名猜测者初始 5 张手牌。</p></div><button class="primary" id="start-game" ${view.players.length < 3 ? 'disabled' : ''}>开始游戏</button></div></section>` : '<section class="panel player-wait"><p class="eyebrow">你是猜测者</p><h2>等待全知者开始</h2><p class="muted">规则暂时保密。开始后，全知者会放置 3 张线索，你可以据此推理。</p><div class="legend"><span class="attr">属性</span><span class="word">词汇</span><span class="context">情境</span></div></section>'}</div><aside class="sidebar">${members()}<section class="panel"><h3>邀请朋友</h3><p class="muted">把房间码或邀请链接发给朋友。仅准备阶段可以加入。</p><button class="quiet" id="copy-invite">复制邀请链接</button></section></aside></div>`;
+  return `<div class="roomgrid"><div>${view.me.isHost ? `${rules(true)}<section class="panel" style="margin-top:18px"><div class="row spread"><div><h3>准备好了吗？</h3><p class="muted" style="margin:0">至少 3 人，每名猜测者初始 5 张手牌。</p></div><button class="primary" id="start-game" ${view.players.length < 3 ? 'disabled' : ''}>开始游戏</button></div></section>` : '<section class="panel player-wait"><p class="eyebrow">你是猜测者</p><h2>等待全知者开始</h2><p class="muted">规则暂时保密。开始后，全知者会放置 3 张线索，你可以据此推理。</p><div class="legend"><span class="attr">属性</span><span class="word">词汇</span><span class="context">情境</span></div></section>'}</div><aside class="sidebar">${members()}${packPanel()}<section class="panel"><h3>邀请朋友</h3><p class="muted">把房间码或邀请链接发给朋友。仅准备阶段可以加入。</p><button class="quiet" id="copy-invite">复制邀请链接</button></section></aside></div>`;
 }
 function turnText() {
   if (view.phase === 'clues') return view.me.isHost ? `放置开局线索 ${view.board.length}/3` : '等待全知者放置 3 张开局线索';
@@ -134,7 +137,10 @@ function board() {
   const cards = view.me.isHost ? view.clues : view.me.hand;
   const selected = cards.find(c => c.id === selectedCard);
   const playable = view.phase === 'clues' ? view.me.isHost : view.phase === 'playing' && view.turn === view.me.id && !view.pending;
-  return `<section class="panel board-panel"><div class="row spread"><h2 style="margin:0">${esc(turnText())}</h2><span class="muted" style="font-size:14px">剩余 ${view.deckCount} 张</span></div><div class="legend" style="margin-top:16px"><span class="attr"><i class="swatch"></i>属性</span><span class="word"><i class="swatch"></i>词汇</span><span class="context"><i class="swatch"></i>情境</span></div><div class="board">${circles()}${regions.map((r, mask) => { const count = view.board.filter(c => c.mask === mask).length; return `<button class="region ${selectedMask === mask ? 'selected' : ''} ${view.pending?.mask === mask ? 'pending' : ''} ${!count ? 'empty' : ''}" style="left:${r.x}%;top:${r.y}%" data-region="${mask}" aria-pressed="${selectedMask === mask}" aria-label="${r.label}，${count} 张牌"><span>${r.short}</span><span class="total">${count} 张</span></button>`; }).join('')}</div><div class="selection"><p>${selected ? `<b>${esc(selected.en)}</b>（${esc(selected.zh)}）` : '先选择下方的一张牌'}${selectedMask !== null ? `<br><span class="muted">区域：${regions[selectedMask].label}</span>` : '<br><span class="muted">点击棋盘区域可查看已放置的牌</span>'}</p>${playable ? `<button class="primary" id="place-card" ${!selected || selectedMask === null ? 'disabled' : ''}>${view.phase === 'clues' ? '放置线索' : '提交给全知者'}</button>` : ''}</div>${selectedMask !== null ? `<div style="margin-top:18px"><h3>${regions[selectedMask].label}的物品</h3><div class="board-cards">${view.board.filter(c => c.mask === selectedMask).map(c => `<span class="board-card"><b>${esc(c.card.en)}</b><small>${esc(c.card.zh)}${c.clue ? ' · 线索' : ''}</small></span>`).join('') || '<p class="muted">这个区域还没有物品牌。</p>'}</div></div>` : ''}</section>`;
+  return `<section class="panel board-panel"><div class="row spread"><h2 style="margin:0">${esc(turnText())}</h2><span class="muted" style="font-size:14px">剩余 ${view.deckCount} 张</span></div><div class="legend" style="margin-top:16px"><span class="attr"><i class="swatch"></i>属性</span><span class="word"><i class="swatch"></i>词汇</span><span class="context"><i class="swatch"></i>情境</span></div><p class="board-hint muted">词语显示在实际分类区域内；区域内可滚动，点击标题选择区域。</p><div class="board-scroll"><div class="board">${circles()}${regions.map((r, mask) => {
+    const placed = view.board.filter(c => c.mask === mask), pending = view.pending?.mask === mask ? view.pending : null;
+    return `<section class="region region-panel ${selectedMask === mask ? 'selected' : ''} ${pending ? 'pending' : ''}" style="left:${r.x}%;top:${r.y}%" aria-label="${r.label}"><button class="region-title" data-region="${mask}" aria-pressed="${selectedMask === mask}">${r.short}<small>${placed.length} 张</small></button><div class="region-words" tabindex="0" aria-label="${r.label}中的词语">${placed.map(c => `<div class="region-word"><b>${esc(c.card.en)}</b>${c.card.zh ? `<small>${esc(c.card.zh)}</small>` : ''}</div>`).join('')}${pending ? `<div class="region-word awaiting"><b>${esc(pending.card.en)}</b><small>${esc(pending.card.zh)} · 待判定</small></div>` : ''}${!placed.length && !pending ? '<span class="region-placeholder">暂无词语</span>' : ''}</div></section>`;
+  }).join('')}</div></div><div class="selection"><p>${selected ? `<b>${esc(selected.en)}</b>（${esc(selected.zh)}）` : '先选择下方的一张牌'}${selectedMask !== null ? `<br><span class="muted">区域：${regions[selectedMask].label}</span>` : '<br><span class="muted">点击棋盘区域可查看已放置的牌</span>'}</p>${playable ? `<button class="primary" id="place-card" ${!selected || selectedMask === null ? 'disabled' : ''}>${view.phase === 'clues' ? '放置线索' : '提交给全知者'}</button>` : ''}</div>${selectedMask !== null ? `<div style="margin-top:18px"><h3>${regions[selectedMask].label}的物品</h3><div class="board-cards">${view.board.filter(c => c.mask === selectedMask).map(c => `<span class="board-card"><b>${esc(c.card.en)}</b><small>${esc(c.card.zh)}${c.clue ? ' · 线索' : ''}</small></span>`).join('') || '<p class="muted">这个区域还没有物品牌。</p>'}</div></div>` : ''}</section>`;
 }
 function judge() {
   if (!view.pending) return '';
@@ -177,6 +183,13 @@ async function copy(value) {
 function invite() { return `${location.origin}/rings/?room=${view.code}`; }
 function rulesPayload() { return { action: 'rules', rules: ruleDraft || view.rules }; }
 function bindRoom() {
+  document.querySelector('#import-pack')?.addEventListener('change', async event => {
+    const file = event.target.files[0]; if (!file) return;
+    if (file.size > 200000) { toast('文字牌组文件最多 200 KB，请不要嵌入图片'); event.target.value = ''; return; }
+    let pack;
+    try { pack = JSON.parse(await file.text()); } catch { toast('无法读取牌组，请选择有效的 JSON 文件'); event.target.value = ''; return; }
+    await perform({ action: 'import', pack });
+  });
   document.querySelector('#copy-code')?.addEventListener('click', () => copy(view.code));
   for (const id of ['copy-link', 'copy-invite']) document.querySelector(`#${id}`)?.addEventListener('click', () => copy(invite()));
   document.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', () => perform({ action: button.dataset.action })));

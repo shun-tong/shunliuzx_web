@@ -1,0 +1,725 @@
+{
+  "name": "自编示例牌组（导入示例）",
+  "cards": [
+    {
+      "en": "Apple",
+      "zh": "苹果"
+    },
+    {
+      "en": "Banana",
+      "zh": "香蕉"
+    },
+    {
+      "en": "Orange",
+      "zh": "橙子"
+    },
+    {
+      "en": "Pear",
+      "zh": "梨"
+    },
+    {
+      "en": "Peach",
+      "zh": "桃子"
+    },
+    {
+      "en": "Grape",
+      "zh": "葡萄"
+    },
+    {
+      "en": "Lemon",
+      "zh": "柠檬"
+    },
+    {
+      "en": "Watermelon",
+      "zh": "西瓜"
+    },
+    {
+      "en": "Strawberry",
+      "zh": "草莓"
+    },
+    {
+      "en": "Pineapple",
+      "zh": "菠萝"
+    },
+    {
+      "en": "Carrot",
+      "zh": "胡萝卜"
+    },
+    {
+      "en": "Potato",
+      "zh": "土豆"
+    },
+    {
+      "en": "Tomato",
+      "zh": "番茄"
+    },
+    {
+      "en": "Onion",
+      "zh": "洋葱"
+    },
+    {
+      "en": "Mushroom",
+      "zh": "蘑菇"
+    },
+    {
+      "en": "Bread",
+      "zh": "面包"
+    },
+    {
+      "en": "Cheese",
+      "zh": "奶酪"
+    },
+    {
+      "en": "Egg",
+      "zh": "鸡蛋"
+    },
+    {
+      "en": "Milk",
+      "zh": "牛奶"
+    },
+    {
+      "en": "Rice",
+      "zh": "米饭"
+    },
+    {
+      "en": "Noodle",
+      "zh": "面条"
+    },
+    {
+      "en": "Cookie",
+      "zh": "曲奇"
+    },
+    {
+      "en": "Cake",
+      "zh": "蛋糕"
+    },
+    {
+      "en": "Chocolate",
+      "zh": "巧克力"
+    },
+    {
+      "en": "Honey",
+      "zh": "蜂蜜"
+    },
+    {
+      "en": "Salt",
+      "zh": "盐"
+    },
+    {
+      "en": "Coffee",
+      "zh": "咖啡"
+    },
+    {
+      "en": "Tea",
+      "zh": "茶"
+    },
+    {
+      "en": "Water",
+      "zh": "水"
+    },
+    {
+      "en": "Ice",
+      "zh": "冰"
+    },
+    {
+      "en": "Spoon",
+      "zh": "勺子"
+    },
+    {
+      "en": "Fork",
+      "zh": "叉子"
+    },
+    {
+      "en": "Knife",
+      "zh": "刀"
+    },
+    {
+      "en": "Plate",
+      "zh": "盘子"
+    },
+    {
+      "en": "Bowl",
+      "zh": "碗"
+    },
+    {
+      "en": "Cup",
+      "zh": "杯子"
+    },
+    {
+      "en": "Bottle",
+      "zh": "瓶子"
+    },
+    {
+      "en": "Kettle",
+      "zh": "水壶"
+    },
+    {
+      "en": "Pan",
+      "zh": "平底锅"
+    },
+    {
+      "en": "Oven",
+      "zh": "烤箱"
+    },
+    {
+      "en": "Refrigerator",
+      "zh": "冰箱"
+    },
+    {
+      "en": "Microwave",
+      "zh": "微波炉"
+    },
+    {
+      "en": "Table",
+      "zh": "桌子"
+    },
+    {
+      "en": "Chair",
+      "zh": "椅子"
+    },
+    {
+      "en": "Sofa",
+      "zh": "沙发"
+    },
+    {
+      "en": "Bed",
+      "zh": "床"
+    },
+    {
+      "en": "Pillow",
+      "zh": "枕头"
+    },
+    {
+      "en": "Blanket",
+      "zh": "毯子"
+    },
+    {
+      "en": "Lamp",
+      "zh": "台灯"
+    },
+    {
+      "en": "Mirror",
+      "zh": "镜子"
+    },
+    {
+      "en": "Clock",
+      "zh": "时钟"
+    },
+    {
+      "en": "Window",
+      "zh": "窗户"
+    },
+    {
+      "en": "Door",
+      "zh": "门"
+    },
+    {
+      "en": "Key",
+      "zh": "钥匙"
+    },
+    {
+      "en": "Lock",
+      "zh": "锁"
+    },
+    {
+      "en": "Umbrella",
+      "zh": "雨伞"
+    },
+    {
+      "en": "Backpack",
+      "zh": "背包"
+    },
+    {
+      "en": "Wallet",
+      "zh": "钱包"
+    },
+    {
+      "en": "Suitcase",
+      "zh": "行李箱"
+    },
+    {
+      "en": "Glasses",
+      "zh": "眼镜"
+    },
+    {
+      "en": "Hat",
+      "zh": "帽子"
+    },
+    {
+      "en": "Shirt",
+      "zh": "衬衫"
+    },
+    {
+      "en": "Coat",
+      "zh": "外套"
+    },
+    {
+      "en": "Shoe",
+      "zh": "鞋"
+    },
+    {
+      "en": "Sock",
+      "zh": "袜子"
+    },
+    {
+      "en": "Glove",
+      "zh": "手套"
+    },
+    {
+      "en": "Scarf",
+      "zh": "围巾"
+    },
+    {
+      "en": "Belt",
+      "zh": "腰带"
+    },
+    {
+      "en": "Ring",
+      "zh": "戒指"
+    },
+    {
+      "en": "Watch",
+      "zh": "手表"
+    },
+    {
+      "en": "Phone",
+      "zh": "手机"
+    },
+    {
+      "en": "Computer",
+      "zh": "电脑"
+    },
+    {
+      "en": "Keyboard",
+      "zh": "键盘"
+    },
+    {
+      "en": "Mouse",
+      "zh": "鼠标"
+    },
+    {
+      "en": "Screen",
+      "zh": "屏幕"
+    },
+    {
+      "en": "Camera",
+      "zh": "相机"
+    },
+    {
+      "en": "Speaker",
+      "zh": "扬声器"
+    },
+    {
+      "en": "Headphones",
+      "zh": "耳机"
+    },
+    {
+      "en": "Battery",
+      "zh": "电池"
+    },
+    {
+      "en": "Cable",
+      "zh": "电线"
+    },
+    {
+      "en": "Book",
+      "zh": "书"
+    },
+    {
+      "en": "Notebook",
+      "zh": "笔记本"
+    },
+    {
+      "en": "Pencil",
+      "zh": "铅笔"
+    },
+    {
+      "en": "Pen",
+      "zh": "笔"
+    },
+    {
+      "en": "Eraser",
+      "zh": "橡皮"
+    },
+    {
+      "en": "Ruler",
+      "zh": "尺子"
+    },
+    {
+      "en": "Scissors",
+      "zh": "剪刀"
+    },
+    {
+      "en": "Paper",
+      "zh": "纸"
+    },
+    {
+      "en": "Envelope",
+      "zh": "信封"
+    },
+    {
+      "en": "Stamp",
+      "zh": "邮票"
+    },
+    {
+      "en": "Ball",
+      "zh": "球"
+    },
+    {
+      "en": "Kite",
+      "zh": "风筝"
+    },
+    {
+      "en": "Balloon",
+      "zh": "气球"
+    },
+    {
+      "en": "Puzzle",
+      "zh": "拼图"
+    },
+    {
+      "en": "Dice",
+      "zh": "骰子"
+    },
+    {
+      "en": "Guitar",
+      "zh": "吉他"
+    },
+    {
+      "en": "Piano",
+      "zh": "钢琴"
+    },
+    {
+      "en": "Drum",
+      "zh": "鼓"
+    },
+    {
+      "en": "Flute",
+      "zh": "长笛"
+    },
+    {
+      "en": "Violin",
+      "zh": "小提琴"
+    },
+    {
+      "en": "Bicycle",
+      "zh": "自行车"
+    },
+    {
+      "en": "Car",
+      "zh": "汽车"
+    },
+    {
+      "en": "Bus",
+      "zh": "公共汽车"
+    },
+    {
+      "en": "Train",
+      "zh": "火车"
+    },
+    {
+      "en": "Airplane",
+      "zh": "飞机"
+    },
+    {
+      "en": "Boat",
+      "zh": "船"
+    },
+    {
+      "en": "Truck",
+      "zh": "卡车"
+    },
+    {
+      "en": "Helicopter",
+      "zh": "直升机"
+    },
+    {
+      "en": "Wheel",
+      "zh": "轮子"
+    },
+    {
+      "en": "Helmet",
+      "zh": "头盔"
+    },
+    {
+      "en": "Dog",
+      "zh": "狗"
+    },
+    {
+      "en": "Cat",
+      "zh": "猫"
+    },
+    {
+      "en": "Rabbit",
+      "zh": "兔子"
+    },
+    {
+      "en": "Horse",
+      "zh": "马"
+    },
+    {
+      "en": "Cow",
+      "zh": "牛"
+    },
+    {
+      "en": "Pig",
+      "zh": "猪"
+    },
+    {
+      "en": "Sheep",
+      "zh": "羊"
+    },
+    {
+      "en": "Duck",
+      "zh": "鸭子"
+    },
+    {
+      "en": "Chicken",
+      "zh": "鸡"
+    },
+    {
+      "en": "Fish",
+      "zh": "鱼"
+    },
+    {
+      "en": "Shark",
+      "zh": "鲨鱼"
+    },
+    {
+      "en": "Whale",
+      "zh": "鲸鱼"
+    },
+    {
+      "en": "Dolphin",
+      "zh": "海豚"
+    },
+    {
+      "en": "Turtle",
+      "zh": "乌龟"
+    },
+    {
+      "en": "Snake",
+      "zh": "蛇"
+    },
+    {
+      "en": "Frog",
+      "zh": "青蛙"
+    },
+    {
+      "en": "Butterfly",
+      "zh": "蝴蝶"
+    },
+    {
+      "en": "Bee",
+      "zh": "蜜蜂"
+    },
+    {
+      "en": "Ant",
+      "zh": "蚂蚁"
+    },
+    {
+      "en": "Spider",
+      "zh": "蜘蛛"
+    },
+    {
+      "en": "Lion",
+      "zh": "狮子"
+    },
+    {
+      "en": "Tiger",
+      "zh": "老虎"
+    },
+    {
+      "en": "Elephant",
+      "zh": "大象"
+    },
+    {
+      "en": "Giraffe",
+      "zh": "长颈鹿"
+    },
+    {
+      "en": "Bear",
+      "zh": "熊"
+    },
+    {
+      "en": "Penguin",
+      "zh": "企鹅"
+    },
+    {
+      "en": "Owl",
+      "zh": "猫头鹰"
+    },
+    {
+      "en": "Eagle",
+      "zh": "鹰"
+    },
+    {
+      "en": "Feather",
+      "zh": "羽毛"
+    },
+    {
+      "en": "Shell",
+      "zh": "贝壳"
+    },
+    {
+      "en": "Tree",
+      "zh": "树"
+    },
+    {
+      "en": "Flower",
+      "zh": "花"
+    },
+    {
+      "en": "Leaf",
+      "zh": "叶子"
+    },
+    {
+      "en": "Grass",
+      "zh": "草"
+    },
+    {
+      "en": "Seed",
+      "zh": "种子"
+    },
+    {
+      "en": "Rock",
+      "zh": "石头"
+    },
+    {
+      "en": "Sand",
+      "zh": "沙子"
+    },
+    {
+      "en": "Mountain",
+      "zh": "山"
+    },
+    {
+      "en": "River",
+      "zh": "河流"
+    },
+    {
+      "en": "Lake",
+      "zh": "湖"
+    },
+    {
+      "en": "Ocean",
+      "zh": "海洋"
+    },
+    {
+      "en": "Cloud",
+      "zh": "云"
+    },
+    {
+      "en": "Rain",
+      "zh": "雨"
+    },
+    {
+      "en": "Snow",
+      "zh": "雪"
+    },
+    {
+      "en": "Sun",
+      "zh": "太阳"
+    },
+    {
+      "en": "Moon",
+      "zh": "月亮"
+    },
+    {
+      "en": "Star",
+      "zh": "星星"
+    },
+    {
+      "en": "Fire",
+      "zh": "火"
+    },
+    {
+      "en": "Smoke",
+      "zh": "烟"
+    },
+    {
+      "en": "Rainbow",
+      "zh": "彩虹"
+    },
+    {
+      "en": "Hammer",
+      "zh": "锤子"
+    },
+    {
+      "en": "Nail",
+      "zh": "钉子"
+    },
+    {
+      "en": "Screw",
+      "zh": "螺丝"
+    },
+    {
+      "en": "Ladder",
+      "zh": "梯子"
+    },
+    {
+      "en": "Rope",
+      "zh": "绳子"
+    },
+    {
+      "en": "Brush",
+      "zh": "刷子"
+    },
+    {
+      "en": "Broom",
+      "zh": "扫帚"
+    },
+    {
+      "en": "Bucket",
+      "zh": "桶"
+    },
+    {
+      "en": "Soap",
+      "zh": "肥皂"
+    },
+    {
+      "en": "Towel",
+      "zh": "毛巾"
+    },
+    {
+      "en": "Toothbrush",
+      "zh": "牙刷"
+    },
+    {
+      "en": "Comb",
+      "zh": "梳子"
+    },
+    {
+      "en": "Candle",
+      "zh": "蜡烛"
+    },
+    {
+      "en": "Match",
+      "zh": "火柴"
+    },
+    {
+      "en": "Tent",
+      "zh": "帐篷"
+    },
+    {
+      "en": "Map",
+      "zh": "地图"
+    },
+    {
+      "en": "Compass",
+      "zh": "指南针"
+    },
+    {
+      "en": "Ticket",
+      "zh": "票"
+    },
+    {
+      "en": "Coin",
+      "zh": "硬币"
+    },
+    {
+      "en": "Flag",
+      "zh": "旗帜"
+    }
+  ]
+}

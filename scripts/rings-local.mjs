@@ -15,7 +15,7 @@ const server = http.createServer(async (incoming, outgoing) => {
   try {
     const url = new URL(incoming.url, `http://127.0.0.1:${port}`);
     if (url.pathname === '/api/rings') {
-      let raw = ''; for await (const chunk of incoming) { raw += chunk; if (raw.length > 6000) { outgoing.writeHead(413); outgoing.end(); return; } }
+      let raw = ''; for await (const chunk of incoming) { raw += chunk; if (raw.length > 200000) { outgoing.writeHead(413); outgoing.end(); return; } }
       const request = new Request(url, { method: incoming.method, headers: incoming.headers, ...(incoming.method === 'POST' ? { body: raw } : {}) });
       const handler = incoming.method === 'GET' ? onRequestGet : incoming.method === 'POST' ? onRequestPost : null;
       if (!handler) { outgoing.writeHead(405); outgoing.end(); return; }
@@ -23,11 +23,11 @@ const server = http.createServer(async (incoming, outgoing) => {
       outgoing.writeHead(response.status, Object.fromEntries(response.headers)); outgoing.end(await response.text()); return;
     }
     if (url.pathname === '/') { outgoing.writeHead(302, { location: '/rings/' }); outgoing.end(); return; }
-    const allowed = { '/rings/': 'index.html', '/rings/index.html': 'index.html', '/rings/game.js': 'game.js', '/rings/game.css': 'game.css', '/rings/favicon.svg': 'favicon.svg' };
+    const allowed = { '/rings/': 'index.html', '/rings/index.html': 'index.html', '/rings/game.js': 'game.js', '/rings/game.css': 'game.css', '/rings/favicon.svg': 'favicon.svg', '/rings/sample-pack.json': 'sample-pack.json' };
     const filename = allowed[url.pathname];
     if (!filename) { outgoing.writeHead(404); outgoing.end('Not found'); return; }
     const content = await fs.readFile(path.join(root, 'rings', filename));
-    const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml' };
+    const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json; charset=utf-8' };
     outgoing.writeHead(200, { 'content-type': types[path.extname(filename)], 'cache-control': 'no-store' }); outgoing.end(content);
   } catch (error) { console.error(error.message); outgoing.writeHead(500); outgoing.end('Local preview error'); }
 });
